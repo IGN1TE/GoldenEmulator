@@ -7,8 +7,8 @@ Each stage requires Cory’s review and explicit approval before work advances t
 | Stage | Scope | Status |
 | --- | --- | --- |
 | 1. Interface prototype | Clickable interface, console selection, navigation, sample search and favourites | Approved by Cory on 2026-10-20 |
-| 2. Game library | Import game folders, artwork, search, favourites and game details | Stage 2 delivered; awaiting review |
-| 3. Emulator integration | Connect installed emulators and launch games; test each system separately | Pending Stage 2 approval |
+| 2. Game library | Import game folders, artwork, search, favourites and game details | Approved by Cory on 2026-10-20 |
+| 3. Emulator integration | Connect installed emulators and launch games; test each system separately | Stage 3 delivered; awaiting Windows review |
 | 4. Controller experience | Controller navigation, fullscreen and returning after gameplay | Pending Stage 3 approval |
 | 5. Installation and polish | Windows installer, saved settings, error handling and PC testing | Pending Stage 4 approval |
 
@@ -33,3 +33,14 @@ Each stage requires Cory’s review and explicit approval before work advances t
 - [ ] Obtain Cory’s explicit approval for Stage 2.
 
 Stage 1 is a browser prototype, not the packaged Windows app. Syntax and stub-based checks passed during its original build. Browser rendering and Windows runtime testing remain unverified because the test browser download failed. Emulator launching is not implemented. PS5 compatibility depends on the underlying emulator; the interface does not imply playable support.
+
+## Stage 3 Windows review
+
+- [ ] Configure installed Dolphin, Xenia and PCSX2 EXEs.
+- [ ] Import native game folders, or restore Stage 2 backup and locate game files.
+- [ ] Launch and exit a game for each configured system.
+- [ ] Verify spaces in emulator/game paths work.
+- [ ] Verify missing-file errors and duplicate-launch prevention.
+- [ ] Reopen launcher and verify library/settings persist.
+- [ ] Report game/emulator/version and errors for failed launches.
+- [ ] Cory approves Stage 3 before controller work starts.

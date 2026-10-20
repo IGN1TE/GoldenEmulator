@@ -1,22 +1,22 @@
-GoldenEmulator — Windows Stage 2 review
+GoldenEmulator — Stage 3 Windows review
 
-1. Extract the ZIP to a permanent folder.
-2. Open GoldenEmulator.html in Edge or Chrome. Use the same browser and file location each time.
-3. Click Import game folder, choose a console, then choose a folder with games for that console.
-4. Review the detected files, deselect any unwanted entries, and click Add selected games.
-5. Open a game to edit its title, console, notes, cover image or favourite status.
-6. Use Library search, console filters and sorting. Settings includes Export backup and Restore backup.
+1. Extract the Stage 3 Windows ZIP to a permanent folder.
+2. Run GoldenEmulator.exe. No Python installation is needed for the packaged EXE.
+3. In the app, open Settings > Emulator setup.
+4. Choose your installed Dolphin.exe, Xenia executable or pcsx2-qt.exe.
+5. Import a folder for the appropriate console. The Windows picker links full game paths.
+6. Open a game and click Launch game.
 
-Files stay on your drive. This build saves library metadata and cover artwork locally in IndexedDB; it does not copy or upload game files. Browsers expose relative paths, not full Windows paths. Actual emulator launch configuration comes in Stage 3.
+Set up and test each emulator separately first. GoldenEmulator does not download emulators, games, firmware or BIOS files. Its launch presets pass game paths to Dolphin, Xenia and PCSX2. Connecting an EXE is not a compatibility test. PS5 stays in the library but launching is unavailable.
 
-Keep a backup before moving the HTML or clearing browser data. Backups contain artwork and metadata, not games. Use one GoldenEmulator window at a time; this build does not synchronize edits between open windows. Limits: 5,000 games, 20,000 files per folder scan, 45 MB saved library, 10 MB per input cover image (resized locally), 50 MB backup import.
+Moving from Stage 2: In the old build, Settings > Export backup. In this build, Settings > Restore backup, then open each game and use Locate game file to link its Windows path. Native imports link full paths immediately.
 
-Formats recognized:
-GameCube: ISO, GCM, RVZ, CISO
-Xbox 360: ISO, XEX (extracted games may expose more than one XEX; review selection)
-PS2: ISO, BIN, CHD, CSO, CUE (matching BIN is skipped when CUE exists)
-PS5: PKG, eboot.bin only (recognition does not imply playable support)
-Archives are skipped. Updates, DLC and multidisc entries may appear separately; review before adding.
+Library and emulator settings are saved in %LOCALAPPDATA%\GoldenEmulator, separately from this download folder. Backups include game paths and artwork, not game files or emulator settings. Keep a backup before clearing data or moving PCs.
 
-Review gate: Cory approved Stage 1. Stage 2 awaits review before Stage 3.
-Validation: eight automated import/backup/escaping tests passed and JavaScript syntax passed. Browser rendering, folder-picker UI, IndexedDB persistence and Windows runtime still need your review. Cloud browser policy blocks local-file previews; no automated visual verification is claimed.
+The app opens its interface in your browser, backed by a Windows launcher listening only on 127.0.0.1:48761. Keep one app window open at a time. Closing the browser tab does not stop the launcher; use Settings > Exit GoldenEmulator. Exiting does not terminate a running emulator. If opening the launcher reports it is already running, return to its browser tab.
+
+An emulator can be launched once at a time. Close it normally to launch another game. An emulator process starting does not prove the game will run; review the emulator window for missing firmware, unsupported formats or game compatibility errors.
+
+Limits: 5,000 games, 20,000 files per folder scan, 45 MB library, 10 MB input cover images, 50 MB backup imports. Archives are skipped. Review update/DLC/multidisc or multiple-XEX entries before adding.
+
+Stage 3 awaits Cory’s review. Controller navigation, fullscreen game-return behaviour and installer polish remain later stages.
