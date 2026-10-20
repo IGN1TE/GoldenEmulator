@@ -16,7 +16,7 @@ jobs:
         run: python -m unittest -v test_native.py
       - name: Test frontend logic
         run: |
-          python -m zipfile -e GoldenEmulator-Stage-4-Source.zip source-check
+          python -m zipfile -e GoldenEmulator-Stage-5-Source.zip source-check
           node --test source-check/tests/library.test.cjs source-check/tests/controller.test.cjs
       - name: Package Windows executable
         run: |
@@ -35,21 +35,31 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item START-HERE.txt dist\START-HERE.txt
-          Compress-Archive -Path dist\GoldenEmulator.exe,dist\START-HERE.txt -DestinationPath GoldenEmulator-Stage-4-Windows.zip
-          Get-FileHash GoldenEmulator-Stage-4-Windows.zip -Algorithm SHA256 | Format-List
+          Compress-Archive -Path dist\GoldenEmulator.exe,dist\START-HERE.txt -DestinationPath GoldenEmulator-Stage-5-Windows.zip
+          Get-FileHash GoldenEmulator-Stage-5-Windows.zip -Algorithm SHA256 | Format-List
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
+      - name: Test install, lifecycle and uninstall
+        shell: pwsh
+        run: ./test_installer.ps1
       - uses: actions/upload-artifact@v4
         with:
-          name: GoldenEmulator-Stage-4-Windows
-          path: GoldenEmulator-Stage-4-Windows.zip
+          name: GoldenEmulator-Stage-5-Windows
+          path: |
+            GoldenEmulator-Stage-5-Windows.zip
+            installer-dist/GoldenEmulator-Setup-0.5.0.exe
       - name: Publish review prerelease
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release view stage4-review *> $null
+          gh release view stage5-review *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload stage4-review GoldenEmulator-Stage-4-Windows.zip --clobber
+            gh release upload stage5-review GoldenEmulator-Stage-5-Windows.zip installer-dist/GoldenEmulator-Setup-0.5.0.exe --clobber
           } else {
-            gh release create stage4-review GoldenEmulator-Stage-4-Windows.zip --target "$env:GITHUB_SHA" --prerelease --title "Stage 4 Windows review" --notes-file release-notes.md
+            gh release create stage5-review GoldenEmulator-Stage-5-Windows.zip installer-dist/GoldenEmulator-Setup-0.5.0.exe --target "$env:GITHUB_SHA" --prerelease --title "Stage 5 Windows installer review" --notes-file release-notes.md
           }
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
