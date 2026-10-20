@@ -1,32 +1,46 @@
-GoldenEmulator — Stage 4 Windows review
+GoldenEmulator — Stage 5 Windows review (0.5.0)
 
-1. Extract the Stage 4 Windows ZIP to a permanent folder.
-2. Run GoldenEmulator.exe. No Python installation is needed for the packaged EXE.
-3. In the app, open Settings > Emulator setup.
-4. Choose your installed Dolphin.exe, Xenia executable or pcsx2-qt.exe.
-5. Import a folder for the appropriate console. The Windows picker links full game paths.
-6. Open a game and click Launch game.
+INSTALL
+Run GoldenEmulator-Setup-0.5.0.exe, then use the GoldenEmulator shortcut.
+The portable ZIP is optional: extract it into a new folder and run GoldenEmulator.exe.
+If updating from Stage 3/4, first open the old browser tab and choose Settings > Exit GoldenEmulator.
 
-Set up and test each emulator separately first. GoldenEmulator does not download emulators, games, firmware or BIOS files. Its launch presets pass game paths to Dolphin, Xenia and PCSX2. Connecting an EXE is not a compatibility test. PS5 stays in the library but launching is unavailable.
+OPEN / CLOSE
+The small GoldenEmulator launcher window stays visible while the app runs.
+Open game library opens the interface in your default browser.
+Exit GoldenEmulator or the launcher's X button fully exits the launcher.
+Closing only the browser tab leaves the launcher window running.
+Start menu > GoldenEmulator > Stop GoldenEmulator also exits it.
+Running emulators are not terminated. Close them normally.
 
-Moving from Stage 2: In the old build, Settings > Export backup. In this build, Settings > Restore backup, then open each game and use Locate game file to link its Windows path. Native imports link full paths immediately.
+SETUP AND PLAY
+Settings > Emulator setup links your installed Dolphin, Xenia or PCSX2 EXE.
+Import a game folder, open a game, and select Launch game.
+Emulators, games, BIOS and firmware are not included. PS5 is library-only.
 
-Library and emulator settings are saved in %LOCALAPPDATA%\GoldenEmulator, separately from this download folder. Backups include game paths and artwork, not game files or emulator settings. Keep a backup before clearing data or moving PCs.
+CONTROLLER
+Focus the browser tab, press and release a controller button.
+D-pad/left stick: navigate. A/Cross: select. B/Circle: back. LB/RB: pages.
+Dropdown: A/Cross, then up/down to change, A/Cross or B/Circle to finish.
+Use keyboard/mouse for text and Windows file pickers. Fullscreen: toolbar button or F11.
+After gameplay close the emulator and return to the browser tab; release buttons before continuing.
 
-The app opens its interface in your browser, backed by a Windows launcher listening only on 127.0.0.1:48761. Keep one app window open at a time. Closing the browser tab does not stop the launcher; use Settings > Exit GoldenEmulator. Exiting does not terminate a running emulator. If opening the launcher reports it is already running, return to its browser tab.
+YOUR DATA
+Saved library: %LOCALAPPDATA%\GoldenEmulator\library.json
+Emulator paths: %LOCALAPPDATA%\GoldenEmulator\emulators.json
+Installation defaults to %LOCALAPPDATA%\Programs\GoldenEmulator.
+Installing/reinstalling or uninstalling keeps the separate saved library/settings.
+Settings > Export backup saves library entries/art, not games or emulator settings.
+To move an old browser-only library: export there, restore in the Windows app, then Locate game file.
 
-An emulator can be launched once at a time. Close it normally to launch another game. An emulator process starting does not prove the game will run; review the emulator window for missing firmware, unsupported formats or game compatibility errors.
+TROUBLESHOOTING
+Already running: opening again reopens the current library. Exit the old launcher before an update.
+For Stage 3/4, use Settings > Exit GoldenEmulator in its browser tab.
+Missing game: use Locate game file. Missing emulator: choose its EXE again in Settings.
+A damaged library is reported without resetting it; keep a copy before repairing it.
+Launch failures: check the emulator itself, firmware/BIOS and game compatibility.
 
-Limits: 5,000 games, 20,000 files per folder scan, 45 MB library, 10 MB input cover images, 50 MB backup imports. Archives are skipped. Review update/DLC/multidisc or multiple-XEX entries before adding.
+Limits: 5,000 games; 20,000 files per scan; 45 MB library; 10 MB source cover; 50 MB backup.
+Use Check for updates in the launcher or Settings to find newer installers (including review releases). Downloads open on GitHub; exit the launcher before installing. This is an unsigned review release.
 
-Stage 4 review adds controller navigation to the Windows launcher.
-
-Download GoldenEmulator-Stage-4-Windows.zip, extract it, and run GoldenEmulator.exe. Exit the old launcher through Settings first. Existing native library and emulator settings are retained.
-
-Connect a controller, focus the browser tab, press and release a button. D-pad or left stick moves the cyan focus highlight. A/Cross selects; B/Circle closes a dialog or returns to Systems; LB/RB switches pages. On a dropdown, A/Cross enters option editing, up/down changes the option, and A/Cross or B/Circle finishes. Use the fullscreen button or F11 for a larger view.
-
-Navigation pauses while the emulator runs or this tab is unfocused. Close the emulator normally and return to the GoldenEmulator tab; release controller buttons before continuing. This build does not force the browser into the foreground or close emulators with a controller shortcut.
-
-Text entry and Windows file pickers still use keyboard/mouse. Controllers must be exposed by the browser with standard Gamepad mapping. Emulator gameplay controls are configured separately in each emulator. PS5 remains library-only.
-
-Automated controller tests cover mapping, stick drift, repeat timing, focus/gameplay rearming and spatial navigation. Windows tests and packaged EXE checks run before publication. Physical controller operation and rendered focus behaviour need Cory’s PC review. Stage 5 awaits approval.
+Check for updates is available in the launcher window and Settings. It compares installer versions on GitHub, reports when you are up to date, and offers the download page for newer versions, including review releases. Installation remains manual.

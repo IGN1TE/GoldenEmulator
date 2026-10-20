@@ -1,11 +1,13 @@
-Stage 4 review adds controller navigation to the Windows launcher.
+Stage 5 adds a Windows installer and a visible launcher window.
 
-Download GoldenEmulator-Stage-4-Windows.zip, extract it, and run GoldenEmulator.exe. Exit the old launcher through Settings first. Existing native library and emulator settings are retained.
+Download **GoldenEmulator-Setup-0.5.0.exe** and run it. Setup installs for your Windows account, adds Start menu shortcuts and offers a desktop shortcut. No Python installation is required. The portable ZIP is also available.
 
-Connect a controller, focus the browser tab, press and release a button. D-pad or left stick moves the cyan focus highlight. A/Cross selects; B/Circle closes a dialog or returns to Systems; LB/RB switches pages. On a dropdown, A/Cross enters option editing, up/down changes the option, and A/Cross or B/Circle finishes. Use the fullscreen button or F11 for a larger view.
+**Updating from Stage 3 or 4:** first use Settings > Exit GoldenEmulator in the old browser tab. If you open the new version while an older launcher is running, it reopens the old tab and explains how to exit it. Then start the new installed shortcut. Existing library and emulator paths remain in your user profile.
 
-Navigation pauses while the emulator runs or this tab is unfocused. Close the emulator normally and return to the GoldenEmulator tab; release controller buttons before continuing. This build does not force the browser into the foreground or close emulators with a controller shortcut.
+The new launcher window has Open game library and Exit GoldenEmulator buttons. Closing that window exits the launcher. Closing only the browser tab does not exit it. You can also use Start menu > GoldenEmulator > Stop GoldenEmulator. Running emulators stay open when the launcher exits. Reopening the installed app while it is already running opens its library again.
 
-Text entry and Windows file pickers still use keyboard/mouse. Controllers must be exposed by the browser with standard Gamepad mapping. Emulator gameplay controls are configured separately in each emulator. PS5 remains library-only.
+The interface still uses your default browser. Controller navigation is retained. Text entry and file pickers use keyboard/mouse. Emulator gameplay controls are configured separately. PS5 remains library-only.
 
-Automated controller tests cover mapping, stick drift, repeat timing, focus/gameplay rearming and spatial navigation. Windows tests and packaged EXE checks run before publication. Physical controller operation and rendered focus behaviour need Cory’s PC review. Stage 5 awaits approval.
+The build tests installation, installed EXE startup, repeated launch, the stop shortcut, closing the launcher window, reinstalling and uninstalling. Reinstall/uninstall preserve the saved library outside the installation folder. This unsigned review installer still needs Cory’s Windows review; updates are checked on demand.
+
+Check for updates is available in the launcher window and Settings. It compares installer versions on GitHub, reports when you are up to date, and offers the download page for newer versions, including review releases. Installation remains manual.

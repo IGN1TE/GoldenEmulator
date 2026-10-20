@@ -9,8 +9,8 @@ Each stage requires Cory’s review and explicit approval before work advances t
 | 1. Interface prototype | Clickable interface, console selection, navigation, sample search and favourites | Approved by Cory on 2026-10-20 |
 | 2. Game library | Import game folders, artwork, search, favourites and game details | Approved by Cory on 2026-10-20 |
 | 3. Emulator integration | Connect installed emulators and launch games; test each system separately | Approved by Cory on 2026-10-20: everything worked |
-| 4. Controller experience | Controller navigation, fullscreen and returning after gameplay | Stage 4 delivered; awaiting controller review |
-| 5. Installation and polish | Windows installer, saved settings, error handling and PC testing | Pending Stage 4 approval |
+| 4. Controller experience | Controller navigation, fullscreen and returning after gameplay | Approved by Cory on 2026-10-20: controller works |
+| 5. Installation and polish | Windows installer, saved settings, error handling and PC testing | Stage 5 installer delivered; awaiting review |
 
 ## Stage 2 review checklist
 
@@ -54,3 +54,12 @@ Stage 1 is a browser prototype, not the packaged Windows app. Syntax and stub-ba
 - [ ] Launch a game, close it normally and return to this tab.
 - [ ] Verify no held button causes an accidental action on return.
 - [ ] Cory approves before Stage 5.
+
+## Stage 5 review
+
+- [ ] Exit old launcher, install and open shortcut.
+- [ ] Verify library and emulator paths are retained.
+- [ ] Close launcher window and reopen successfully.
+- [ ] Try Start menu Stop GoldenEmulator.
+- [ ] Check controller navigation and a game launch.
+- [ ] Cory reviews installer and final polish.

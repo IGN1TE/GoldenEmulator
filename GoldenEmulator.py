@@ -1,4 +1,4 @@
-"""GoldenEmulator Stage 4. Standard-library Windows launcher; no shell commands."""
+"""GoldenEmulator Stage 5. Standard-library Windows launcher; no shell commands."""
 from __future__ import annotations
 import json
 import os
@@ -222,7 +222,7 @@ def handler_for(app,token,html,origin,stop):
             if self.headers.get('Host')!=origin.removeprefix('http://'):
                 self.send(403,{'error':'Invalid host.'});return
             if self.path=='/':
-                self.send(200,html.replace('<!-- NATIVE_CONFIG -->','<script>window.GE_NATIVE='+json.dumps({'token':token,'version':4})+';</script>'),'text/html');return
+                self.send(200,html.replace('<!-- NATIVE_CONFIG -->','<script>window.GE_NATIVE='+json.dumps({'token':token,'version':5})+';</script>'),'text/html');return
             if not self.allowed():self.send(403,{'error':'Reopen GoldenEmulator from its launcher.'});return
             if self.path=='/api/state':self.send(200,app.state)
             elif self.path=='/api/config':self.send(200,app.configurations())
@@ -246,6 +246,7 @@ def handler_for(app,token,html,origin,stop):
                     result=scan_folder(folder,s) if folder else {'cancelled':True}
                 elif self.path=='/api/locate':result=app.locate(data.get('id'))
                 elif self.path=='/api/launch':result=app.launch(data.get('id'))
+                elif self.path=='/api/updates':result=check_updates()
                 elif self.path=='/api/stop':
                     self.send(200,{'stopped':True});threading.Thread(target=stop,daemon=True).start();return
                 else:self.send(404,{'error':'Not found.'});return
@@ -255,42 +256,158 @@ def handler_for(app,token,html,origin,stop):
     return Handler
 
 
+APP_VERSION = '0.5.0'
+RELEASES_API = 'https://api.github.com/repos/IGN1TE/GoldenEmulator/releases?per_page=100'
+RELEASE_PREFIX = 'https://github.com/IGN1TE/GoldenEmulator/releases/tag/'
+
+
+def select_update(releases, current=APP_VERSION):
+    import re
+    if not isinstance(releases,list):raise ValueError('GitHub returned an invalid release list.')
+    latest=tuple(map(int,current.split('.')));result={'current':current,'latest':current,'available':False,'url':''}
+    for release in releases:
+        if not isinstance(release,dict) or release.get('draft'):continue
+        url=release.get('html_url','')
+        if not isinstance(url,str) or not re.fullmatch(re.escape(RELEASE_PREFIX)+r'[A-Za-z0-9._-]+',url):continue
+        assets=release.get('assets',[])
+        if not isinstance(assets,list):continue
+        for asset in assets:
+            if not isinstance(asset,dict):continue
+            match=re.fullmatch(r'GoldenEmulator-Setup-(\d+)\.(\d+)\.(\d+)\.exe',str(asset.get('name','')))
+            if not match:continue
+            version=tuple(map(int,match.groups()))
+            download=asset.get('browser_download_url','')
+            expected='https://github.com/IGN1TE/GoldenEmulator/releases/download/'+url.rsplit('/',1)[1]+'/'+asset['name']
+            if download!=expected:continue
+            if version>latest:
+                latest=version;result={'current':current,'latest':'.'.join(map(str,version)),'available':True,'url':url,'prerelease':release.get('prerelease') is True}
+    return result
+
+
+def check_updates():
+    import urllib.request
+    req=urllib.request.Request(RELEASES_API,headers={'Accept':'application/vnd.github+json','User-Agent':'GoldenEmulator/'+APP_VERSION})
+    try:
+        with urllib.request.urlopen(req,timeout=10) as response:
+            raw=response.read(2*1024*1024+1)
+        if len(raw)>2*1024*1024:raise ValueError('Release response is too large.')
+        return select_update(json.loads(raw))
+    except (OSError,ValueError) as e:
+        raise ValueError('Could not check for updates. Check your internet connection and try again. GitHub may be temporarily unavailable or rate-limited.') from e
+
+
+def contact_instance(data_dir, stop=False):
+    """Use only our fixed loopback address; never trust a URL from a state file."""
+    import urllib.request
+    origin=f'http://127.0.0.1:{PORT}'
+    try:
+        runtime=json.loads((Path(data_dir)/'runtime.json').read_text(encoding='utf-8'))
+        token=runtime['token']
+        if not isinstance(token,str) or len(token)>200:return False
+        req=urllib.request.Request(origin+('/api/stop' if stop else '/api/status'),
+            data=b'{}' if stop else None,
+            headers={'Content-Type':'application/json','X-GoldenEmulator-Token':token})
+        with urllib.request.urlopen(req,timeout=3) as response:
+            result=json.load(response)
+        return result.get('stopped') is True if stop else isinstance(result.get('running'),bool)
+    except (OSError,ValueError,KeyError,TypeError):return False
+
+
 def main():
     import tkinter as tk
-    from tkinter import filedialog,messagebox
+    from tkinter import filedialog,messagebox,ttk
     root=tk.Tk();root.withdraw()
     if sys.platform!='win32':
         messagebox.showerror('GoldenEmulator','This launcher is for Windows.');root.destroy();return
-    requests=queue.Queue()
+    data_dir=Path(os.environ['LOCALAPPDATA'])/'GoldenEmulator'
+    origin=f'http://127.0.0.1:{PORT}'
+    if '--stop' in sys.argv:
+        if not contact_instance(data_dir,stop=True):
+            messagebox.showinfo('GoldenEmulator','No current launcher was found. For a Stage 3 or 4 launcher, use Settings > Exit GoldenEmulator in its browser tab.')
+        root.destroy();return
+    if contact_instance(data_dir):
+        if '--no-browser' not in sys.argv:webbrowser.open(origin)
+        root.destroy();return
+    requests=queue.Queue();update_results=queue.Queue();stopping=threading.Event();stopped=threading.Event()
     def picker(kind,system):
         task={'kind':kind,'system':system,'event':threading.Event(),'result':''}
         requests.put(task)
         if not task['event'].wait(600):raise ValueError('File selection timed out. Try again.')
         return task['result']
+    def stop():
+        if stopping.is_set():return
+        stopping.set()
+        def shutdown():
+            server.shutdown();stopped.set()
+        threading.Thread(target=shutdown,daemon=True).start()
     def poll():
+        if stopped.is_set():root.quit();return
+        try:
+            result=update_results.get_nowait()
+            update_button.configure(state='normal',text='Check for updates')
+            if isinstance(result,str):messagebox.showerror('Check for updates',result,parent=root)
+            elif result['available']:
+                label=' (review release)' if result.get('prerelease') else ''
+                if messagebox.askyesno('Update available',f"Version {result['latest']}{label} is available. You have {APP_VERSION}.\n\nOpen the download page? Exit GoldenEmulator before running the new installer.",parent=root):webbrowser.open(result['url'])
+            else:messagebox.showinfo('Check for updates',f'You are up to date: {APP_VERSION}.',parent=root)
+        except queue.Empty:pass
         try:
             task=requests.get_nowait()
-            root.attributes('-topmost',True)
-            if task['kind']=='folder':task['result']=filedialog.askdirectory(parent=root,title='Choose '+task['system']+' games folder')
-            elif task['kind']=='emulator':task['result']=filedialog.askopenfilename(parent=root,title='Choose '+SYSTEMS[task['system']][0]+' executable',filetypes=[('Windows executable','*.exe')])
-            else:task['result']=filedialog.askopenfilename(parent=root,title='Locate game file',filetypes=[('Game files',' '.join('*'+x for x in SYSTEMS[task['system']][1]))])
-            task['event'].set()
+            try:
+                if task['kind']=='folder':task['result']=filedialog.askdirectory(parent=root,title='Choose '+task['system']+' games folder')
+                elif task['kind']=='emulator':task['result']=filedialog.askopenfilename(parent=root,title='Choose '+SYSTEMS[task['system']][0]+' executable',filetypes=[('Windows executable','*.exe')])
+                else:task['result']=filedialog.askopenfilename(parent=root,title='Locate game file',filetypes=[('Game files',' '.join('*'+x for x in SYSTEMS[task['system']][1]))])
+            finally:task['event'].set()
         except queue.Empty:pass
         finally:root.after(100,poll)
+    server=None
     try:
-        app=Launcher(Path(os.environ['LOCALAPPDATA'])/'GoldenEmulator',picker)
+        app=Launcher(data_dir,picker)
         html=(Path(getattr(sys,'_MEIPASS',Path(__file__).parent))/'GoldenEmulator.html').read_text(encoding='utf-8')
-        origin=f'http://127.0.0.1:{PORT}'
         token=secrets.token_urlsafe(32)
-        def stop():
-            server.shutdown();root.after(0,root.quit)
-        server=LocalServer(('127.0.0.1',PORT),handler_for(app,token,html,origin,stop))
+        try:server=LocalServer(('127.0.0.1',PORT),handler_for(app,token,html,origin,stop))
+        except OSError:
+            # Older portable builds have no runtime record. Identify their page before reopening.
+            import urllib.request
+            try:
+                with urllib.request.urlopen(origin,timeout=3) as response:existing=response.read(1000000).decode('utf-8')
+                if 'window.GE_NATIVE=' in existing and 'function bindLaunch' in existing:
+                    webbrowser.open(origin)
+                    messagebox.showinfo('Older launcher is still open','The running launcher has been reopened. Use Settings > Exit GoldenEmulator there, then open this new version again.')
+                    root.destroy();return
+            except (OSError,UnicodeError):pass
+            raise ValueError('The local launcher port is in use. Close the old GoldenEmulator launcher, then try again.')
+        atomic_json(data_dir/'runtime.json',{'token':token,'version':5})
     except Exception as e:
-        messagebox.showerror('GoldenEmulator','Could not start GoldenEmulator. If it is already running, use its open browser tab. Otherwise check your saved data in %LOCALAPPDATA%\\GoldenEmulator.\n\n'+str(e));root.destroy();return
+        if server:server.server_close()
+        messagebox.showerror('GoldenEmulator','Could not start GoldenEmulator. Your saved data has not been reset.\n\n'+str(e));root.destroy();return
     threading.Thread(target=server.serve_forever,daemon=True).start()
-    root.after(100,poll)
-    webbrowser.open(origin)
-    root.mainloop();server.server_close();root.destroy()
+    root.title('GoldenEmulator — Launcher');root.geometry('480x335');root.resizable(False,False)
+    panel=ttk.Frame(root,padding=22);panel.pack(fill='both',expand=True)
+    ttk.Label(panel,text='GoldenEmulator',font=('Segoe UI',20,'bold')).pack(anchor='w')
+    ttk.Label(panel,text='Version '+APP_VERSION+' • Windows launcher',font=('Segoe UI',10)).pack(anchor='w',pady=(0,15))
+    ttk.Label(panel,text='Your game library opens in your browser.\nKeep this launcher open while using it.\nClose this window to fully exit GoldenEmulator.\nRunning emulators will stay open.',justify='left').pack(anchor='w')
+    ttk.Button(panel,text='Open game library',command=lambda:webbrowser.open(origin)).pack(fill='x',pady=(16,6))
+    ttk.Button(panel,text='Exit GoldenEmulator',command=stop).pack(fill='x')
+    def request_update():
+        update_button.configure(state='disabled',text='Checking…')
+        def work():
+            try:update_results.put(check_updates())
+            except ValueError as e:update_results.put(str(e))
+        threading.Thread(target=work,daemon=True).start()
+    update_button=ttk.Button(panel,text='Check for updates',command=request_update)
+    update_button.pack(fill='x',pady=6)
+    root.protocol('WM_DELETE_WINDOW',stop);root.deiconify();root.after(100,poll)
+    if '--no-browser' not in sys.argv:webbrowser.open(origin)
+    try:root.mainloop()
+    finally:
+        if not stopping.is_set():stop()
+        stopped.wait(3);server.server_close()
+        try:
+            runtime=data_dir/'runtime.json'
+            if json.loads(runtime.read_text(encoding='utf-8')).get('token')==token:runtime.unlink()
+        except (OSError,ValueError):pass
+        root.destroy()
 
 if __name__=='__main__':
     if len(sys.argv)==3 and sys.argv[1]=='--self-test':

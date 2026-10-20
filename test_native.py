@@ -90,6 +90,53 @@ class NativeTests(unittest.TestCase):
             with self.assertRaises(urllib.error.HTTPError) as err:urllib.request.urlopen(req)
             self.assertEqual(err.exception.code,403)
         finally:server.shutdown();server.server_close()
+    def test_existing_instance_can_be_found_and_stopped_with_saved_token(self):
+        from unittest.mock import patch
+        stopped=threading.Event()
+        server=ge.LocalServer(('127.0.0.1',0),ge.handler_for(self.app,'token','', 'http://127.0.0.1:0',stopped.set))
+        origin=f'http://127.0.0.1:{server.server_port}'
+        server.RequestHandlerClass=ge.handler_for(self.app,'token','',origin,stopped.set)
+        threading.Thread(target=server.serve_forever,daemon=True).start()
+        try:
+            ge.atomic_json(self.app.data_dir/'runtime.json',{'token':'token'})
+            with patch.object(ge,'PORT',server.server_port):
+                self.assertTrue(ge.contact_instance(self.app.data_dir))
+                self.assertTrue(ge.contact_instance(self.app.data_dir,stop=True))
+                self.assertTrue(stopped.wait(2))
+        finally:server.shutdown();server.server_close()
+    def test_missing_or_malformed_instance_record_is_not_running(self):
+        self.assertFalse(ge.contact_instance(self.app.data_dir))
+        (self.app.data_dir/'runtime.json').write_text('{broken')
+        self.assertFalse(ge.contact_instance(self.app.data_dir))
+    def test_stale_instance_token_cannot_stop_server(self):
+        from unittest.mock import patch
+        stopped=threading.Event()
+        server=ge.LocalServer(('127.0.0.1',0),ge.handler_for(self.app,'actual','', 'http://127.0.0.1:0',stopped.set))
+        server.RequestHandlerClass=ge.handler_for(self.app,'actual','',f'http://127.0.0.1:{server.server_port}',stopped.set)
+        threading.Thread(target=server.serve_forever,daemon=True).start()
+        try:
+            ge.atomic_json(self.app.data_dir/'runtime.json',{'token':'stale'})
+            with patch.object(ge,'PORT',server.server_port):
+                self.assertFalse(ge.contact_instance(self.app.data_dir,stop=True))
+                self.assertFalse(stopped.is_set())
+        finally:server.shutdown();server.server_close()
+    def test_update_check_uses_numeric_installer_versions_and_includes_review_releases(self):
+        def release(version,tag):
+            name='GoldenEmulator-Setup-'+version+'.exe'
+            return {'html_url':ge.RELEASE_PREFIX+tag,'prerelease':True,'assets':[{'name':name,'browser_download_url':'https://github.com/IGN1TE/GoldenEmulator/releases/download/'+tag+'/'+name}]}
+        result=ge.select_update([release('0.9.0','old'),release('0.10.0','new')])
+        self.assertTrue(result['available']);self.assertEqual(result['latest'],'0.10.0');self.assertTrue(result['prerelease'])
+        self.assertFalse(ge.select_update([release('0.5.0','current')])['available'])
+    def test_update_check_ignores_drafts_and_external_downloads(self):
+        name='GoldenEmulator-Setup-9.0.0.exe'
+        release={'draft':True,'html_url':ge.RELEASE_PREFIX+'future','assets':[{'name':name,'browser_download_url':'https://github.com/IGN1TE/GoldenEmulator/releases/download/future/'+name}]}
+        self.assertFalse(ge.select_update([release])['available'])
+        release['draft']=False;release['assets'][0]['browser_download_url']='https://untrusted.example/file.exe'
+        self.assertFalse(ge.select_update([release])['available'])
+    def test_update_failure_reports_error_without_claiming_up_to_date(self):
+        from unittest.mock import patch
+        with patch('urllib.request.urlopen',side_effect=OSError('offline')):
+            with self.assertRaisesRegex(ValueError,'Could not check'):ge.check_updates()
     @unittest.skipUnless(sys.platform=='win32','Windows process smoke test')
     def test_real_windows_process_with_space_path(self):
         self.game.write_text('import sys\nsys.exit(0)\n')
