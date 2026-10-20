@@ -8,8 +8,8 @@ Each stage requires Cory’s review and explicit approval before work advances t
 | --- | --- | --- |
 | 1. Interface prototype | Clickable interface, console selection, navigation, sample search and favourites | Approved by Cory on 2026-10-20 |
 | 2. Game library | Import game folders, artwork, search, favourites and game details | Approved by Cory on 2026-10-20 |
-| 3. Emulator integration | Connect installed emulators and launch games; test each system separately | Stage 3 delivered; awaiting Windows review |
-| 4. Controller experience | Controller navigation, fullscreen and returning after gameplay | Pending Stage 3 approval |
+| 3. Emulator integration | Connect installed emulators and launch games; test each system separately | Approved by Cory on 2026-10-20: everything worked |
+| 4. Controller experience | Controller navigation, fullscreen and returning after gameplay | Stage 4 delivered; awaiting controller review |
 | 5. Installation and polish | Windows installer, saved settings, error handling and PC testing | Pending Stage 4 approval |
 
 ## Stage 2 review checklist
@@ -44,3 +44,13 @@ Stage 1 is a browser prototype, not the packaged Windows app. Syntax and stub-ba
 - [ ] Reopen launcher and verify library/settings persist.
 - [ ] Report game/emulator/version and errors for failed launches.
 - [ ] Cory approves Stage 3 before controller work starts.
+
+## Stage 4 review
+
+- [ ] Connect controller and check status indicator.
+- [ ] Browse systems, library, favourites and game details.
+- [ ] Check A/Cross, B/Circle, LB/RB and dropdown editing.
+- [ ] Hold directions, check stick drift and reconnect controller.
+- [ ] Launch a game, close it normally and return to this tab.
+- [ ] Verify no held button causes an accidental action on return.
+- [ ] Cory approves before Stage 5.

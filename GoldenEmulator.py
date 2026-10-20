@@ -1,4 +1,4 @@
-"""GoldenEmulator Stage 3. Standard-library Windows launcher; no shell commands."""
+"""GoldenEmulator Stage 4. Standard-library Windows launcher; no shell commands."""
 from __future__ import annotations
 import json
 import os
@@ -222,7 +222,7 @@ def handler_for(app,token,html,origin,stop):
             if self.headers.get('Host')!=origin.removeprefix('http://'):
                 self.send(403,{'error':'Invalid host.'});return
             if self.path=='/':
-                self.send(200,html.replace('<!-- NATIVE_CONFIG -->','<script>window.GE_NATIVE='+json.dumps({'token':token,'version':3})+';</script>'),'text/html');return
+                self.send(200,html.replace('<!-- NATIVE_CONFIG -->','<script>window.GE_NATIVE='+json.dumps({'token':token,'version':4})+';</script>'),'text/html');return
             if not self.allowed():self.send(403,{'error':'Reopen GoldenEmulator from its launcher.'});return
             if self.path=='/api/state':self.send(200,app.state)
             elif self.path=='/api/config':self.send(200,app.configurations())
