@@ -13,6 +13,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import webbrowser
 
 SYSTEMS = {
+    'SNES': ('Snes9x', {'.sfc', '.smc'}),
+    'NES': ('Mesen', {'.nes', '.unf', '.unif'}),
+    'Wii': ('Dolphin', {'.iso', '.wbfs', '.rvz', '.ciso'}),
+    'PlayStation 1': ('DuckStation', {'.cue', '.chd', '.pbp', '.m3u'}),
+    'PlayStation 3': ('RPCS3', {'.bin', '.elf', '.self'}),
+    'PlayStation 4': ('Kyty --game (experimental)', {'.bin', '.elf', '.zar'}),
     'GameCube': ('Dolphin', {'.iso', '.gcm', '.rvz', '.ciso'}),
     'Xbox 360': ('Xenia', {'.iso', '.xex'}),
     'PlayStation 2': ('PCSX2', {'.iso', '.bin', '.chd', '.cso', '.cue'}),
@@ -71,10 +77,35 @@ def atomic_json(path, data):
 
 
 def launch_arguments(system, exe, game):
-    if system == 'GameCube': return [str(exe), '-b', '-e', str(game)]
+    if system in ('GameCube', 'Wii'): return [str(exe), '-b', '-e', str(game)]
+    if system in ('SNES', 'NES'): return [str(exe), str(game)]
+    if system == 'PlayStation 1': return [str(exe), '-batch', '--', str(game)]
+    if system == 'PlayStation 3': return [str(exe), '--no-gui', str(game)]
+    if system == 'PlayStation 4': return [str(exe), '--game', str(game)]
     if system == 'Xbox 360': return [str(exe), str(game)]
     if system == 'PlayStation 2': return [str(exe), '-batch', '--', str(game)]
     raise ValueError('PS5 launching is not connected. No compatibility is implied.')
+
+
+def verify_kyty(exe):
+    """Check the selected build's interface, not its game compatibility."""
+    if Path(exe).name.lower() != 'kyty_emulator.exe':
+        raise ValueError('Choose kyty_emulator.exe, not the Kyty launcher or updater.')
+    try:
+        result = subprocess.run([str(exe), '--help'], cwd=str(Path(exe).parent),
+                                capture_output=True, timeout=10, shell=False,
+                                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+        help_text = (result.stdout + result.stderr).decode('utf-8', errors='replace')
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise ValueError('Could not verify this Kyty build’s --game interface.') from e
+    if result.returncode != 0 or '--game <dir|elf|zar>' not in help_text:
+        raise ValueError('This Kyty build does not expose the verified --game interface. Original Lua-based Kyty builds require separate setup.')
+
+
+def valid_game(system, path):
+    return (path.suffix.lower() in SYSTEMS[system][1] and
+            not (system in ('PlayStation 3', 'PlayStation 4', 'PlayStation 5')
+                 and path.suffix.lower() == '.bin' and path.name.lower() != 'eboot.bin'))
 
 
 def scan_folder(folder, system):
@@ -139,6 +170,7 @@ class Launcher:
         if not path: return {'cancelled':True}
         exe = Path(path).resolve(strict=True)
         if not exe.is_file() or exe.suffix.lower()!='.exe': raise ValueError('Choose the installed emulator EXE.')
+        if system == 'PlayStation 4': verify_kyty(exe)
         with self.lock:
             new = dict(self.config); new[system]=str(exe)
             atomic_json(self.config_file,new); self.config=new
@@ -152,7 +184,7 @@ class Launcher:
         path=self.picker('game',system)
         if not path:return {'cancelled':True}
         p=Path(path).resolve(strict=True)
-        if not p.is_file() or p.suffix.lower() not in SYSTEMS[system][1]: raise ValueError('Choose a recognised game file for this console.')
+        if not p.is_file() or not valid_game(system, p): raise ValueError('Choose a recognised game file for this console (BIN must be eboot.bin).')
         if system=='PlayStation 5' and p.suffix.lower()=='.bin' and p.name.lower()!='eboot.bin':raise ValueError('Choose eboot.bin or a PKG file.')
         with self.lock:
             data=json.loads(json.dumps(self.state))
@@ -182,7 +214,8 @@ class Launcher:
             if not exe.is_file() or exe.suffix.lower()!='.exe':raise ValueError('Set up '+SYSTEMS[s][0]+' in Emulator setup first.')
             game=Path(g.get('nativePath',''))
             if not game.is_absolute() or not game.is_file():raise ValueError('Game file not found. Use Locate game file to link its Windows path.')
-            if game.suffix.lower() not in SYSTEMS[s][1]:raise ValueError('Unsupported game file for this console.')
+            if not valid_game(s, game):raise ValueError('Unsupported game file for this console.')
+            if s == 'PlayStation 4': verify_kyty(exe.resolve())
             args=launch_arguments(s,exe.resolve(),game.resolve())
             try:self.process=self.popen(args,cwd=str(exe.resolve().parent),shell=False)
             except OSError as e:raise ValueError('Windows could not start the emulator: '+str(e)) from e
@@ -262,7 +295,7 @@ def handler_for(app,token,html,origin,stop):
     return Handler
 
 
-APP_VERSION = '0.6.1'
+APP_VERSION = '0.7.0'
 RELEASES_API = 'https://api.github.com/repos/IGN1TE/GoldenEmulator/releases?per_page=100'
 RELEASE_PREFIX = 'https://github.com/IGN1TE/GoldenEmulator/releases/tag/'
 
@@ -357,7 +390,7 @@ def main():
         app.window=window
         app.desktop_ready=False
         def loaded():
-            window.run_js("""(function check(){if(typeof ready==='undefined'||!ready){setTimeout(check,100);return;}fetch('/api/desktop-ready',{method:'POST',headers:{'Content-Type':'application/json','X-GoldenEmulator-Token':window.GE_NATIVE.token},body:JSON.stringify({ok:document.querySelectorAll('.system').length===4&&typeof navigator.getGamepads==='function'&&!!document.getElementById('settings')})});})();""")
+            window.run_js("""(function check(){if(typeof ready==='undefined'||!ready){setTimeout(check,100);return;}fetch('/api/desktop-ready',{method:'POST',headers:{'Content-Type':'application/json','X-GoldenEmulator-Token':window.GE_NATIVE.token},body:JSON.stringify({ok:document.querySelectorAll('.system').length===10&&typeof navigator.getGamepads==='function'&&!!document.getElementById('settings')})});})();""")
         window.events.loaded+=loaded
         atomic_json(data_dir/'runtime.json',{'token':token,'version':6})
         threading.Thread(target=server.serve_forever,daemon=True).start();serving=True

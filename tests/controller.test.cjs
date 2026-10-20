@@ -1,0 +1,10 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const {read,create,neighbor}=require('../src/controller.js');
+const pad=(buttons=[],axes=[0,0],mapping='standard')=>({mapping,axes,buttons:Array.from({length:17},(_,i)=>({pressed:buttons.includes(i)}))});
+test('standard face buttons, shoulder buttons and D-pad map correctly',()=>{for(const [i,a] of [[0,'accept'],[1,'back'],[4,'previous'],[5,'next'],[12,'up'],[13,'down'],[14,'left'],[15,'right']])assert.equal(read(pad([i])),a);});
+test('stick deadzone ignores drift and diagonals use dominant direction',()=>{assert.equal(read(pad([],[.3,-.4])),'');assert.equal(read(pad([],[.8,-.6])),'right');assert.equal(read(pad([],[.2,-.9])),'up');});
+test('unmapped and disconnected controllers cannot activate controls',()=>{assert.equal(read(pad([0],[0,0],'')),'');assert.equal(read(null),'');});
+test('activation requires neutral after connection and does not repeat when held',()=>{const g=create();assert.equal(g('accept',0),'');g('',1);assert.equal(g('accept',2),'accept');assert.equal(g('accept',1000),'');g('',1001);assert.equal(g('accept',1002),'accept');});
+test('direction repeats after delay at a controlled rate',()=>{const g=create();g('',0);assert.equal(g('right',1),'right');assert.equal(g('right',400),'');assert.equal(g('right',421),'right');assert.equal(g('right',500),'');assert.equal(g('right',571),'right');});
+test('background/gameplay pause requires release before accepting return input',()=>{const g=create();g('',0);g('accept',1);g('',2,false);assert.equal(g('accept',3),'');g('',4);assert.equal(g('accept',5),'accept');});
+test('spatial navigation follows grid rows and columns and stops at edges',()=>{const r=[{x:10,y:10},{x:100,y:10},{x:10,y:100},{x:100,y:100}];assert.equal(neighbor(r,0,'right'),1);assert.equal(neighbor(r,0,'down'),2);assert.equal(neighbor(r,3,'up'),1);assert.equal(neighbor(r,0,'left'),-1);assert.equal(neighbor([],0,'down'),-1);});

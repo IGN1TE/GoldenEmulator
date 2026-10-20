@@ -1,12 +1,13 @@
 $ErrorActionPreference = 'Stop'
-$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.6.1.exe'
+$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.7.0.exe'
 $installDir = Join-Path $env:RUNNER_TEMP 'Golden Emulator Install Test'
 $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'GoldenEmulator-Test-Profile'
 $dataDir = Join-Path $env:LOCALAPPDATA 'GoldenEmulator'
 New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
-$library = '{"version":2,"games":[]}'
+$library = '{"version":2,"games":[{"id":"legacy","title":"Saved game","system":"PlayStation 2","path":"Games/test.iso","favorite":true,"notes":"Preserve this","cover":"data:image/png;base64,YQ=="}]}'
 Set-Content (Join-Path $dataDir 'library.json') $library -Encoding utf8NoBOM
-Set-Content (Join-Path $dataDir 'emulators.json') '{}' -Encoding utf8NoBOM
+$config = '{"PlayStation 2":"C:\\Emulators\\pcsx2.exe"}'
+Set-Content (Join-Path $dataDir 'emulators.json') $config -Encoding utf8NoBOM
 function Run-Checked($file, $arguments) {
   $p = Start-Process -FilePath $file -ArgumentList $arguments -PassThru
   if (!$p.WaitForExit(60000)) { $p.Kill(); throw "Timed out: $file" }
@@ -16,7 +17,7 @@ Run-Checked $installer @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"
 $exe = Join-Path $installDir 'GoldenEmulator.exe'
 if (!(Test-Path $exe)) { throw 'Installed EXE missing' }
 $info = (Get-Item $exe).VersionInfo
-if ($info.CompanyName -ne 'IGN1TE' -or $info.FileVersion -ne '0.6.1.0') { throw 'EXE branding metadata missing' }
+if ($info.CompanyName -ne 'IGN1TE' -or $info.FileVersion -ne '0.7.0.0') { throw 'EXE branding metadata missing' }
 Add-Type -AssemblyName System.Drawing
 $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
 if (!$icon) { throw 'EXE icon missing' }
@@ -63,4 +64,5 @@ if ((Get-Content (Join-Path $dataDir 'library.json') -Raw).Trim() -ne $library) 
 Run-Checked (Join-Path $installDir 'unins000.exe') @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART')
 if (Test-Path $exe) { throw 'Uninstall left installed EXE' }
 if ((Get-Content (Join-Path $dataDir 'library.json') -Raw).Trim() -ne $library) { throw 'Uninstall changed library' }
-Write-Output 'PASS: desktop UI rendered with four console cards and Gamepad API; installation, installed runtime, second launch, stop command, window close, reinstall and uninstall; library preserved.'
+if ((Get-Content (Join-Path $dataDir 'emulators.json') -Raw).Trim() -ne $config) { throw 'Emulator configuration changed' }
+Write-Output 'PASS: desktop UI rendered with ten console cards and Gamepad API; installation, installed runtime, second launch, stop command, window close, reinstall and uninstall; library preserved.'

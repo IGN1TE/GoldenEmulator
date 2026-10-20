@@ -1,7 +1,10 @@
-GoldenEmulator 0.6.1 — branded desktop release.
+GoldenEmulator 0.7.0
 
-Adds the new gold G/controller logo to the Windows EXE, application window, installer and app header. Desktop and Start menu shortcuts use the branded EXE icon. Windows file properties identify the product as GoldenEmulator and company as IGN1TE. These branding fields are not a verified digital signature; code signing remains deferred.
+- Fixed proportional artwork during console-card expansion and selection.
+- Added SNES, NES, Wii, PS1, PS3 and PS4 libraries, imports and emulator setup.
+- Added experimental Kyty --game configuration, verified against its CLI. Accepts extracted eboot.bin, ELF or ZArchive; no PKG installation or original Lua-based Kyty support. Game compatibility is unverified.
+- PS5 remains library-only with launching disabled.
+- Preserved saved libraries, artwork, emulator paths, desktop window, controller navigation, gold logo and update checker.
+- Restored editable sources and regression tests to the repository.
 
-Download **GoldenEmulator-Setup-0.6.1.exe**, exit the current app and install. The existing Check for updates button also finds this release. Library, artwork, emulator paths and controller support are retained. The full interface opens in its own desktop window.
-
-The build verifies native/frontend tests, EXE branding metadata and icon presence, actual desktop interface rendering, reopening, shutdown, reinstall/uninstall and saved-library preservation. Please review the new icon on your Windows desktop and taskbar.
+Exit GoldenEmulator and run GoldenEmulator-Setup-0.7.0.exe. Your library is retained. Configure additional emulators under Settings > Emulator setup.

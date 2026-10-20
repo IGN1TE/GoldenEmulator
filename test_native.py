@@ -51,6 +51,43 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(ge.launch_arguments('GameCube','emu.exe','g.iso'),['emu.exe','-b','-e','g.iso'])
         self.assertEqual(ge.launch_arguments('PlayStation 2','emu.exe','g.iso'),['emu.exe','-batch','--','g.iso'])
         with self.assertRaisesRegex(ValueError,'PS5'):ge.launch_arguments('PlayStation 5','emu.exe','g.pkg')
+    def test_new_console_launch_contracts(self):
+        cases = {
+            'SNES': ('g.sfc', ['g.sfc']),
+            'NES': ('g.nes', ['g.nes']),
+            'Wii': ('g.wbfs', ['-b', '-e', 'g.wbfs']),
+            'PlayStation 1': ('g.chd', ['-batch', '--', 'g.chd']),
+            'PlayStation 3': ('EBOOT.BIN', ['--no-gui', 'EBOOT.BIN']),
+            'PlayStation 4': ('eboot.bin', ['--game', 'eboot.bin']),
+        }
+        for system, (game, args) in cases.items():
+            with self.subTest(system=system):
+                self.assertEqual(ge.launch_arguments(system, 'emulator.exe', game), ['emulator.exe'] + args)
+                self.assertTrue(ge.valid_game(system, Path(game)))
+                entry = dict(self.entry, system=system)
+                self.assertEqual(ge.validate_state({'version':2,'games':[entry]})['games'][0]['system'], system)
+        for system in ('PlayStation 3', 'PlayStation 4', 'PlayStation 5'):
+            self.assertFalse(ge.valid_game(system, Path('textures.bin')))
+        self.assertFalse(ge.valid_game('PlayStation 4', Path('game.pkg')))
+    def test_kyty_requires_verified_cli_and_rejects_launcher(self):
+        from unittest.mock import patch
+        exe = self.root/'kyty_emulator.exe'
+        with patch.object(ge.subprocess, 'run') as run:
+            run.return_value = Mock(returncode=0, stdout=b'kyty_emulator --game <dir|elf|zar>', stderr=b'')
+            ge.verify_kyty(exe)
+            self.assertEqual(run.call_args.args[0], [str(exe), '--help'])
+            run.return_value.stdout = b'Kyty script.lua'
+            with self.assertRaisesRegex(ValueError, 'verified'): ge.verify_kyty(exe)
+            with self.assertRaisesRegex(ValueError, 'not the Kyty launcher'): ge.verify_kyty(self.root/'kyty_launcher.exe')
+    def test_legacy_library_and_config_survive_all_console_additions(self):
+        self.app.config['PlayStation 2'] = str(self.exe)
+        ge.atomic_json(self.app.config_file, self.app.config)
+        before = self.app.state_file.read_bytes()
+        reopened = ge.Launcher(self.app.data_dir)
+        self.assertEqual(before, self.app.state_file.read_bytes())
+        self.assertEqual(reopened.config, self.app.config)
+        self.assertEqual(len(reopened.configurations()), 10)
+        self.assertFalse(reopened.configurations()['PlayStation 5']['supported'])
     def test_saved_library_reopens_without_data_loss(self):
         other=ge.Launcher(self.root/'data')
         self.assertEqual(other.state['games'][0]['notes'],'Keep notes')
