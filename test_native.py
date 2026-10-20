@@ -15,7 +15,7 @@ import GoldenEmulator as ge
 
 class NativeTests(unittest.TestCase):
     def setUp(self):
-        self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name)
+        self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name).resolve()
         self.exe=self.root/'Emulator with spaces.exe';self.exe.touch()
         self.game=self.root/'Game & special name.xex';self.game.write_text('example')
         self.entry={'id':'g1','title':'Test','system':'Xbox 360','path':'Games/Test.xex','nativePath':str(self.game),'size':7,'cover':'','favorite':True,'notes':'Keep notes'}
