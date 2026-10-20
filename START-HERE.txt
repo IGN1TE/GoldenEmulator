@@ -1,46 +1,22 @@
-GoldenEmulator — Stage 5 Windows review (0.5.0)
+GoldenEmulator 0.6.0 — Desktop app
 
-INSTALL
-Run GoldenEmulator-Setup-0.5.0.exe, then use the GoldenEmulator shortcut.
-The portable ZIP is optional: extract it into a new folder and run GoldenEmulator.exe.
-If updating from Stage 3/4, first open the old browser tab and choose Settings > Exit GoldenEmulator.
+1. Exit the older version through Settings > Exit GoldenEmulator.
+2. Run GoldenEmulator-Setup-0.6.0.exe.
+3. Open the GoldenEmulator desktop or Start menu shortcut.
 
-OPEN / CLOSE
-The small GoldenEmulator launcher window stays visible while the app runs.
-Open game library opens the interface in your default browser.
-Exit GoldenEmulator or the launcher's X button fully exits the launcher.
-Closing only the browser tab leaves the launcher window running.
-Start menu > GoldenEmulator > Stop GoldenEmulator also exits it.
-Running emulators are not terminated. Close them normally.
+The library opens in a standalone desktop window. Close its X button to exit fully.
+Opening the shortcut again restores the current window instead of opening a browser.
+Settings includes Check for updates. External download pages open in your default browser.
+The fullscreen toolbar button toggles desktop fullscreen.
 
-SETUP AND PLAY
-Settings > Emulator setup links your installed Dolphin, Xenia or PCSX2 EXE.
-Import a game folder, open a game, and select Launch game.
-Emulators, games, BIOS and firmware are not included. PS5 is library-only.
+Your saved library and emulator paths are kept in %LOCALAPPDATA%\GoldenEmulator.
+Settings > Export backup saves library metadata and artwork, not game files or emulator paths.
+The installer adds Microsoft WebView2 if missing (internet required). Portable ZIP users need the runtime already installed.
 
-CONTROLLER
-Focus the browser tab, press and release a controller button.
-D-pad/left stick: navigate. A/Cross: select. B/Circle: back. LB/RB: pages.
-Dropdown: A/Cross, then up/down to change, A/Cross or B/Circle to finish.
-Use keyboard/mouse for text and Windows file pickers. Fullscreen: toolbar button or F11.
-After gameplay close the emulator and return to the browser tab; release buttons before continuing.
+Controller: focus the app, press and release a button. D-pad/left stick moves; A/Cross selects; B/Circle goes back; LB/RB changes pages. Use keyboard/mouse for text and Windows file pickers.
+Close emulators normally after gameplay and return to GoldenEmulator. Exiting GoldenEmulator does not terminate games.
 
-YOUR DATA
-Saved library: %LOCALAPPDATA%\GoldenEmulator\library.json
-Emulator paths: %LOCALAPPDATA%\GoldenEmulator\emulators.json
-Installation defaults to %LOCALAPPDATA%\Programs\GoldenEmulator.
-Installing/reinstalling or uninstalling keeps the separate saved library/settings.
-Settings > Export backup saves library entries/art, not games or emulator settings.
-To move an old browser-only library: export there, restore in the Windows app, then Locate game file.
+Settings > Emulator setup: choose installed Dolphin, Xenia or PCSX2 EXEs.
+Import game folders or use Locate game file for old entries. Emulators, firmware, BIOS and games are not included. PS5 is library-only.
 
-TROUBLESHOOTING
-Already running: opening again reopens the current library. Exit the old launcher before an update.
-For Stage 3/4, use Settings > Exit GoldenEmulator in its browser tab.
-Missing game: use Locate game file. Missing emulator: choose its EXE again in Settings.
-A damaged library is reported without resetting it; keep a copy before repairing it.
-Launch failures: check the emulator itself, firmware/BIOS and game compatibility.
-
-Limits: 5,000 games; 20,000 files per scan; 45 MB library; 10 MB source cover; 50 MB backup.
-Use Check for updates in the launcher or Settings to find newer installers (including review releases). Downloads open on GitHub; exit the launcher before installing. This is an unsigned review release.
-
-Check for updates is available in the launcher window and Settings. It compares installer versions on GitHub, reports when you are up to date, and offers the download page for newer versions, including review releases. Installation remains manual.
+Signing is deferred. The installer is unsigned and Windows may show SmartScreen warnings.

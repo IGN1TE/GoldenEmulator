@@ -63,3 +63,7 @@ Stage 1 is a browser prototype, not the packaged Windows app. Syntax and stub-ba
 - [ ] Try Start menu Stop GoldenEmulator.
 - [ ] Check controller navigation and a game launch.
 - [ ] Cory reviews installer and final polish.
+
+## Desktop correction — 0.6.0
+
+User requested standalone desktop hosting after Stage 5. Full interface moved into WebView2 through pywebview. Retains library, controller logic and update check. Awaiting Windows desktop review. Signing deferred by user.

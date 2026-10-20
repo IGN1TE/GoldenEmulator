@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.5.0.exe'
+$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.6.0.exe'
 $installDir = Join-Path $env:RUNNER_TEMP 'Golden Emulator Install Test'
 $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'GoldenEmulator-Test-Profile'
 $dataDir = Join-Path $env:LOCALAPPDATA 'GoldenEmulator'
@@ -21,8 +21,14 @@ if (!(Get-Content $report | ConvertFrom-Json).ok) { throw 'Installed EXE failed 
 function Start-Launcher {
   $p = Start-Process -FilePath $exe -ArgumentList '--no-browser' -PassThru
   $runtime = Join-Path $dataDir 'runtime.json'
-  for ($i=0; $i -lt 100; $i++) {
-    if (Test-Path $runtime) { return $p }
+  for ($i=0; $i -lt 200; $i++) {
+    if (Test-Path $runtime) {
+      try {
+        $token = (Get-Content $runtime | ConvertFrom-Json).token
+        $status = Invoke-RestMethod 'http://127.0.0.1:48761/api/status' -Headers @{'X-GoldenEmulator-Token'=$token}
+        if ($status.desktopReady) { return $p }
+      } catch { }
+    }
     if ($p.HasExited) { throw 'Launcher exited before ready' }
     Start-Sleep -Milliseconds 200
   }
@@ -51,4 +57,4 @@ if ((Get-Content (Join-Path $dataDir 'library.json') -Raw).Trim() -ne $library) 
 Run-Checked (Join-Path $installDir 'unins000.exe') @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART')
 if (Test-Path $exe) { throw 'Uninstall left installed EXE' }
 if ((Get-Content (Join-Path $dataDir 'library.json') -Raw).Trim() -ne $library) { throw 'Uninstall changed library' }
-Write-Output 'PASS: installation, installed runtime, second launch, stop command, window close, reinstall and uninstall; library preserved.'
+Write-Output 'PASS: desktop UI rendered with four console cards and Gamepad API; installation, installed runtime, second launch, stop command, window close, reinstall and uninstall; library preserved.'
