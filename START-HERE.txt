@@ -1,0 +1,26 @@
+GoldenEmulator — Windows Stage 1 review
+
+Extract this ZIP, then double-click GoldenEmulator.html to open in Edge or Chrome.
+Alternatively use Launch-GoldenEmulator.cmd. No installation or administrator access needed.
+Press F11 for fullscreen.
+
+This is a browser-based interface prototype for the planned Windows desktop app, not an installed emulator frontend yet.
+
+Review:
+1. Select GameCube, Xbox 360, PS5 or PS2. Select the highlighted card again to browse its sample library.
+2. Use Home, Systems, Library and Favorites navigation.
+3. Open a game and add/remove it from favourites.
+4. Search in Library; try a no-match search.
+5. Resize the window and try keyboard Tab, Enter, arrow keys and Escape.
+
+Sample games/artwork are illustrative, drawn from the approved concept. Recently played is sample data. No game downloads, imports, emulator launching, controller support or compatibility claims are included. Favorites persist locally where browser storage is available.
+
+Review gate: Stage 1 requires Cory approval before Stage 2.
+Stage 2: actual library import and management.
+Stage 3: emulator launch integrations and per-system testing.
+Stage 4: controllers and game-return behavior.
+Stage 5: Windows installer and hardware testing.
+
+Source: GoldenEmulator.html contains the full Stage 1 UI, CSS, JavaScript and embedded reference artwork. No external libraries or network calls.
+
+Validation: JavaScript syntax and state/render checks passed using DOM stubs. Actual browser rendering and Windows runtime were not tested in the build environment because the browser download failed. Please report layout issues with a screenshot.
