@@ -16,8 +16,8 @@ jobs:
         run: python -m unittest -v test_native.py
       - name: Test frontend logic
         run: |
-          python -m zipfile -e GoldenEmulator-Stage-3-Source.zip source-check
-          node --test source-check/tests/library.test.cjs
+          python -m zipfile -e GoldenEmulator-Stage-4-Source.zip source-check
+          node --test source-check/tests/library.test.cjs source-check/tests/controller.test.cjs
       - name: Package Windows executable
         run: |
           python -m pip install pyinstaller==6.16.0
@@ -35,21 +35,21 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item START-HERE.txt dist\START-HERE.txt
-          Compress-Archive -Path dist\GoldenEmulator.exe,dist\START-HERE.txt -DestinationPath GoldenEmulator-Stage-3-Windows.zip
-          Get-FileHash GoldenEmulator-Stage-3-Windows.zip -Algorithm SHA256 | Format-List
+          Compress-Archive -Path dist\GoldenEmulator.exe,dist\START-HERE.txt -DestinationPath GoldenEmulator-Stage-4-Windows.zip
+          Get-FileHash GoldenEmulator-Stage-4-Windows.zip -Algorithm SHA256 | Format-List
       - uses: actions/upload-artifact@v4
         with:
-          name: GoldenEmulator-Stage-3-Windows
-          path: GoldenEmulator-Stage-3-Windows.zip
+          name: GoldenEmulator-Stage-4-Windows
+          path: GoldenEmulator-Stage-4-Windows.zip
       - name: Publish review prerelease
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release view stage3-review *> $null
+          gh release view stage4-review *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload stage3-review GoldenEmulator-Stage-3-Windows.zip --clobber
+            gh release upload stage4-review GoldenEmulator-Stage-4-Windows.zip --clobber
           } else {
-            gh release create stage3-review GoldenEmulator-Stage-3-Windows.zip --target "$env:GITHUB_SHA" --prerelease --title "Stage 3 Windows review" --notes-file release-notes.md
+            gh release create stage4-review GoldenEmulator-Stage-4-Windows.zip --target "$env:GITHUB_SHA" --prerelease --title "Stage 4 Windows review" --notes-file release-notes.md
           }
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
