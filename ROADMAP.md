@@ -67,3 +67,7 @@ Stage 1 is a browser prototype, not the packaged Windows app. Syntax and stub-ba
 ## Desktop correction — 0.6.0
 
 User requested standalone desktop hosting after Stage 5. Full interface moved into WebView2 through pywebview. Retains library, controller logic and update check. Awaiting Windows desktop review. Signing deferred by user.
+
+## Branding — 0.6.1
+
+User requested EXE logo and continued building. Added generated gold G/controller icon to EXE, window, installer and header; IGN1TE file metadata; corrected stale stage label. Awaiting user review.

@@ -1,7 +1,7 @@
-GoldenEmulator 0.6.0 — Desktop app
+GoldenEmulator 0.6.1 — Desktop app
 
 1. Exit the older version through Settings > Exit GoldenEmulator.
-2. Run GoldenEmulator-Setup-0.6.0.exe.
+2. Run GoldenEmulator-Setup-0.6.1.exe.
 3. Open the GoldenEmulator desktop or Start menu shortcut.
 
 The library opens in a standalone desktop window. Close its X button to exit fully.

@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.6.0.exe'
+$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.6.1.exe'
 $installDir = Join-Path $env:RUNNER_TEMP 'Golden Emulator Install Test'
 $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'GoldenEmulator-Test-Profile'
 $dataDir = Join-Path $env:LOCALAPPDATA 'GoldenEmulator'
@@ -15,6 +15,12 @@ function Run-Checked($file, $arguments) {
 Run-Checked $installer @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"$installDir`"")
 $exe = Join-Path $installDir 'GoldenEmulator.exe'
 if (!(Test-Path $exe)) { throw 'Installed EXE missing' }
+$info = (Get-Item $exe).VersionInfo
+if ($info.CompanyName -ne 'IGN1TE' -or $info.FileVersion -ne '0.6.1.0') { throw 'EXE branding metadata missing' }
+Add-Type -AssemblyName System.Drawing
+$icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
+if (!$icon) { throw 'EXE icon missing' }
+$icon.Dispose()
 $report = Join-Path $env:RUNNER_TEMP 'installed-self-test.json'
 Run-Checked $exe @('--self-test',"`"$report`"")
 if (!(Get-Content $report | ConvertFrom-Json).ok) { throw 'Installed EXE failed self-test' }

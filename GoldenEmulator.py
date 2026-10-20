@@ -262,7 +262,7 @@ def handler_for(app,token,html,origin,stop):
     return Handler
 
 
-APP_VERSION = '0.6.0'
+APP_VERSION = '0.6.1'
 RELEASES_API = 'https://api.github.com/repos/IGN1TE/GoldenEmulator/releases?per_page=100'
 RELEASE_PREFIX = 'https://github.com/IGN1TE/GoldenEmulator/releases/tag/'
 
@@ -323,6 +323,7 @@ def main():
     import ctypes
     def error(text):ctypes.windll.user32.MessageBoxW(None,text,'GoldenEmulator',0x10)
     if sys.platform!='win32':return
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('IGN1TE.GoldenEmulator')
     data_dir=Path(os.environ['LOCALAPPDATA'])/'GoldenEmulator'
     origin=f'http://127.0.0.1:{PORT}'
     if '--stop' in sys.argv:
@@ -360,7 +361,7 @@ def main():
         window.events.loaded+=loaded
         atomic_json(data_dir/'runtime.json',{'token':token,'version':6})
         threading.Thread(target=server.serve_forever,daemon=True).start();serving=True
-        webview.start(gui='edgechromium',private_mode=False,storage_path=str(data_dir/'WebView2'))
+        webview.start(icon=str(Path(getattr(sys,'_MEIPASS',Path(__file__).parent))/'GoldenEmulator.ico'),gui='edgechromium',private_mode=False,storage_path=str(data_dir/'WebView2'))
     except Exception as e:
         error('Could not open GoldenEmulator. Microsoft Edge WebView2 Runtime is required. Your library has not been reset.\n\n'+str(e))
     finally:

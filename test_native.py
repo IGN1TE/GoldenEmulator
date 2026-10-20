@@ -126,7 +126,7 @@ class NativeTests(unittest.TestCase):
             return {'html_url':ge.RELEASE_PREFIX+tag,'prerelease':True,'assets':[{'name':name,'browser_download_url':'https://github.com/IGN1TE/GoldenEmulator/releases/download/'+tag+'/'+name}]}
         result=ge.select_update([release('0.9.0','old'),release('0.10.0','new')])
         self.assertTrue(result['available']);self.assertEqual(result['latest'],'0.10.0');self.assertTrue(result['prerelease'])
-        self.assertFalse(ge.select_update([release('0.6.0','current')])['available'])
+        self.assertFalse(ge.select_update([release('0.6.1','current')])['available'])
     def test_update_check_ignores_drafts_and_external_downloads(self):
         name='GoldenEmulator-Setup-9.0.0.exe'
         release={'draft':True,'html_url':ge.RELEASE_PREFIX+'future','assets':[{'name':name,'browser_download_url':'https://github.com/IGN1TE/GoldenEmulator/releases/download/future/'+name}]}

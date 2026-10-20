@@ -1,0 +1,4 @@
+Created with the built-in image generation tool.
+Prompt: Use case: logo-brand. Create one polished Windows application icon for GoldenEmulator, a multi-console game launcher. Square composition. A strong custom gold letter G integrated subtly with a game controller silhouette, on a deep navy rounded-square badge. Restrained violet and cyan edge accents match a neon arcade interface. Crisp bold geometric silhouette, broad clean gold shapes, minimal details, flat vector-like finish with subtle premium highlights. Designed to remain recognizable at 32x32 pixels. Center badge fills 90 percent of square, transparent outside rounded corners. No words, no small text, no watermark, no mockup, no background scene, no existing console logos. Deliver a single standalone icon.
+
+Original PNG preserved; ICO format includes 16, 24, 32, 48, 64, 128 and 256 pixel sizes.
