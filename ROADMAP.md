@@ -6,13 +6,24 @@ Each stage requires Cory’s review and explicit approval before work advances t
 
 | Stage | Scope | Status |
 | --- | --- | --- |
-| 1. Interface prototype | Clickable interface, console selection, navigation, sample search and favourites | Awaiting user review |
-| 2. Game library | Import game folders, artwork, search, favourites and game details | Pending Stage 1 approval |
+| 1. Interface prototype | Clickable interface, console selection, navigation, sample search and favourites | Approved by Cory on 2026-10-20 |
+| 2. Game library | Import game folders, artwork, search, favourites and game details | Stage 2 delivered; awaiting review |
 | 3. Emulator integration | Connect installed emulators and launch games; test each system separately | Pending Stage 2 approval |
 | 4. Controller experience | Controller navigation, fullscreen and returning after gameplay | Pending Stage 3 approval |
 | 5. Installation and polish | Windows installer, saved settings, error handling and PC testing | Pending Stage 4 approval |
 
-## Stage 1 review checklist
+## Stage 2 review checklist
+
+- [ ] Import a folder for each console you use.
+- [ ] Check recognised files, skipped files and duplicate handling.
+- [ ] Edit a title, notes and cover image.
+- [ ] Search, filter, sort and favourite imported games.
+- [ ] Close/reopen the same HTML in the same browser and verify persistence.
+- [ ] Export a backup, remove an entry, then restore the backup.
+- [ ] Review layout on Windows and provide screenshots of issues.
+- [ ] Obtain Cory’s explicit approval before Stage 3.
+
+## Stage 1 review checklist (approved)
 
 - [ ] Review layout, spacing, colours and artwork against the chosen concept.
 - [ ] Check console carousel and navigation.

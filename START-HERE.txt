@@ -1,26 +1,22 @@
-GoldenEmulator — Windows Stage 1 review
+GoldenEmulator — Windows Stage 2 review
 
-Extract this ZIP, then double-click GoldenEmulator.html to open in Edge or Chrome.
-Alternatively use Launch-GoldenEmulator.cmd. No installation or administrator access needed.
-Press F11 for fullscreen.
+1. Extract the ZIP to a permanent folder.
+2. Open GoldenEmulator.html in Edge or Chrome. Use the same browser and file location each time.
+3. Click Import game folder, choose a console, then choose a folder with games for that console.
+4. Review the detected files, deselect any unwanted entries, and click Add selected games.
+5. Open a game to edit its title, console, notes, cover image or favourite status.
+6. Use Library search, console filters and sorting. Settings includes Export backup and Restore backup.
 
-This is a browser-based interface prototype for the planned Windows desktop app, not an installed emulator frontend yet.
+Files stay on your drive. This build saves library metadata and cover artwork locally in IndexedDB; it does not copy or upload game files. Browsers expose relative paths, not full Windows paths. Actual emulator launch configuration comes in Stage 3.
 
-Review:
-1. Select GameCube, Xbox 360, PS5 or PS2. Select the highlighted card again to browse its sample library.
-2. Use Home, Systems, Library and Favorites navigation.
-3. Open a game and add/remove it from favourites.
-4. Search in Library; try a no-match search.
-5. Resize the window and try keyboard Tab, Enter, arrow keys and Escape.
+Keep a backup before moving the HTML or clearing browser data. Backups contain artwork and metadata, not games. Use one GoldenEmulator window at a time; this build does not synchronize edits between open windows. Limits: 5,000 games, 20,000 files per folder scan, 45 MB saved library, 10 MB per input cover image (resized locally), 50 MB backup import.
 
-Sample games/artwork are illustrative, drawn from the approved concept. Recently played is sample data. No game downloads, imports, emulator launching, controller support or compatibility claims are included. Favorites persist locally where browser storage is available.
+Formats recognized:
+GameCube: ISO, GCM, RVZ, CISO
+Xbox 360: ISO, XEX (extracted games may expose more than one XEX; review selection)
+PS2: ISO, BIN, CHD, CSO, CUE (matching BIN is skipped when CUE exists)
+PS5: PKG, eboot.bin only (recognition does not imply playable support)
+Archives are skipped. Updates, DLC and multidisc entries may appear separately; review before adding.
 
-Review gate: Stage 1 requires Cory approval before Stage 2.
-Stage 2: actual library import and management.
-Stage 3: emulator launch integrations and per-system testing.
-Stage 4: controllers and game-return behavior.
-Stage 5: Windows installer and hardware testing.
-
-Source: GoldenEmulator.html contains the full Stage 1 UI, CSS, JavaScript and embedded reference artwork. No external libraries or network calls.
-
-Validation: JavaScript syntax and state/render checks passed using DOM stubs. Actual browser rendering and Windows runtime were not tested in the build environment because the browser download failed. Please report layout issues with a screenshot.
+Review gate: Cory approved Stage 1. Stage 2 awaits review before Stage 3.
+Validation: eight automated import/backup/escaping tests passed and JavaScript syntax passed. Browser rendering, folder-picker UI, IndexedDB persistence and Windows runtime still need your review. Cloud browser policy blocks local-file previews; no automated visual verification is claimed.

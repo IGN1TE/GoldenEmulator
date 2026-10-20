@@ -1,24 +1,30 @@
 # GoldenEmulator
 
-A Windows-only emulator frontend project with the selected **Neon Arcade** design: dark navy, purple/cyan accents, scrolling console cards, and recently played games.
+A **Windows-only** emulator frontend with the selected Neon Arcade design: dark navy, purple/cyan accents and scrolling console cards.
 
-## Current status: Stage 1 awaiting review
+## Stage 2: game library — ready for review
 
-This build is a clickable browser prototype for reviewing the planned Windows desktop app. It includes console selection, navigation, sample game details, search and locally saved favourites. Emulator launching is not implemented.
+Cory approved Stage 1 on 2026-10-20. Stage 2 adds real folder scanning, an import preview, duplicate filtering, locally saved library entries, custom covers, editable titles/notes, search, console filters, sorting, favourites, removal and backup export/restore.
 
-## Try Stage 1 on Windows
+This remains a browser-based review build for the planned Windows desktop app. Emulator launching comes in Stage 3, after Stage 2 approval.
 
-1. Download `GoldenEmulator-Stage-1-Windows.zip` and extract it.
-2. Open `GoldenEmulator.html` in Edge or Chrome, or use `Launch-GoldenEmulator.cmd`.
-3. Press F11 for fullscreen.
-4. Review the interface and report feedback in the Stage 1 issue.
+## Try it on Windows
 
-The source HTML is self-contained and includes CSS, JavaScript and embedded concept artwork. Games and artwork are illustrative sample data. PS5 launch support depends on the underlying emulator’s actual capabilities.
+1. Download **GoldenEmulator-Stage-2-Windows.zip** from this repository.
+2. Extract it to a permanent folder and open **GoldenEmulator.html** in Edge or Chrome.
+3. Choose **Import game folder**, select a console, choose its folder, review the results and add selected games.
+4. Open a game to edit details and artwork. Use **Settings → Export backup** before moving the app or clearing browser data.
 
-## Development stages
+The same HTML is available at the repository root. F11 enables fullscreen. See START-HERE.txt for supported formats, limits and the review checklist in ROADMAP.md. Stage 1’s original ZIP remains available.
 
-See [ROADMAP.md](ROADMAP.md) and the repository Issues for the five review stages. Cory must approve each stage before development advances to the next.
+## Storage and boundaries
 
-## Validation limitations
+Game files are not copied or uploaded. IndexedDB stores metadata and resized cover artwork in this browser. Only relative paths are available; full Windows paths and emulator launch configuration come later. Use one app window at a time. PS5 file recognition is not a compatibility claim. Samples are available separately under Settings → View demo library.
 
-Original build checks passed JavaScript syntax and state/render checks using DOM stubs. Actual browser rendering and Windows runtime testing remain unverified because the test browser download failed. Windows visual review is part of Stage 1 acceptance.
+## Source and validation
+
+The root HTML is self-contained source. **GoldenEmulator-Stage-2-Source.zip** also contains editable JS/CSS, the original embedded artwork, a Python build script and automated tests. Extract it, run `python build.py` to build the HTML and `node --test tests/library.test.cjs` to run tests.
+
+Eight import/backup/escaping tests and JavaScript syntax checks pass. Actual browser rendering, folder-picker UI, IndexedDB persistence and Windows runtime remain unverified here: cloud browser policy blocks local file previews. These are part of the Stage 2 user review, not claimed as tested.
+
+See Issues for stage feedback. Every stage requires Cory’s approval before the next begins.
