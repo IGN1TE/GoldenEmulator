@@ -1,8 +1,8 @@
-# GoldenEmulator 0.7.0
+# GoldenEmulator 0.7.1
 
-Fixes stretched console artwork during expansion and selection. Adds SNES (Snes9x), NES (Mesen), Wii (Dolphin), PS1 (DuckStation), PS3 (RPCS3), and experimental PS4 (Kyty --game).
+Fixes the console carousel jumping back when moving between emulators, while preserving proportional artwork during expansion and selection. Adds SNES (Snes9x), NES (Mesen), Wii (Dolphin), PS1 (DuckStation), PS3 (RPCS3), and experimental PS4 (Kyty --game).
 
-Download GoldenEmulator-Setup-0.7.0.exe from Releases, exit the old app and install. Settings > Check for updates also discovers this release. The standalone desktop window, gold logo, controller navigation, library, artwork, favourites, notes and existing emulator paths are retained. User data stays in %LOCALAPPDATA%\GoldenEmulator with the same version-2 schema.
+Download GoldenEmulator-Setup-0.7.1.exe from Releases, exit the old app and install. Settings > Check for updates also discovers this release. The standalone desktop window, gold logo, controller navigation, library, artwork, favourites, notes and existing emulator paths are retained. User data stays in %LOCALAPPDATA%\GoldenEmulator with the same version-2 schema.
 
 Choose installed EXEs under Settings > Emulator setup. Configure BIOS, firmware and controllers in each emulator first. No emulators, firmware or games are included.
 

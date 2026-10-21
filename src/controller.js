@@ -41,7 +41,7 @@ else (()=>{
   const items=()=>[...scope().querySelectorAll('button,input:not([type="hidden"]),select,textarea')].filter(e=>!e.disabled&&e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden'&&e.type!=='file');
   function remember(e){saved=e?{id:e.id,game:e.dataset.game,system:e.dataset.system,page:e.dataset.page}:null;}
   function focus(e){if(!e)return;document.querySelectorAll('.pad-focus').forEach(x=>x.classList.remove('pad-focus'));e.classList.add('pad-focus');e.focus({preventScroll:true});e.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});remember(e);}
-  function restore(){const list=items();const match=saved&&list.find(e=>(saved.id&&e.id===saved.id)||(saved.game&&e.dataset.game===saved.game)||(saved.system!==undefined&&e.dataset.system===saved.system)||(saved.page&&e.dataset.page===saved.page));focus(match||list.find(e=>e.id==='launch-game')||list.find(e=>e.classList.contains('system')&&e.classList.contains('selected'))||list[0]);}
+  function restore(){const list=items();const match=saved&&list.find(e=>(saved.id&&e.id===saved.id)||(saved.game&&e.dataset.game===saved.game)||(saved.system!==undefined&&e.dataset.system===saved.system)||(saved.page&&e.dataset.page===saved.page));const target=match||list.find(e=>e.id==='launch-game')||list.find(e=>e.classList.contains('system')&&e.classList.contains('selected'))||list[0];if(target!==document.activeElement)focus(target);}
   function act(action){
     active=true;document.body.classList.add('controller-mode');
     let list=items(),e=document.activeElement;
