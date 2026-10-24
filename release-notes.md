@@ -1,8 +1,11 @@
-GoldenEmulator 0.8.1
+GoldenEmulator 0.8.2
 
-- Fixed PS4 setup rejecting shadPS4: removed the KYTY-only executable and help-output checks.
-- PS4 now uses shadPS4; supports core and QtLauncher game launching with their respective arguments.
-- Other PS4 EXEs can be selected and opened without assumed command-line arguments.
-- PS5 keeps its separate custom emulator connection. Game details immediately enable its Open emulator button.
-- Existing libraries and emulator paths are preserved. Choose shadPS4 under PS4 to replace an old KYTY link.
-- Includes verified in-app updates from 0.8.0.
+- Integrated the saved offline feature packs into the desktop build.
+- Added Recently Played on Home, recently played/most launched sorting, launch details, random selection, and F/L navigation shortcuts.
+- Added CSV library export, library statistics, per-console dashboard, JSON reports, backups and maintenance audits.
+- Added duplicate-path, unlinked-path, cover and never-played reports, plus confirmed bulk favourites for the filtered view.
+- Added persistent themes, card sizes, larger text and reduced-motion settings with reset controls.
+- Added dashboard (Alt+G), appearance (Ctrl+Shift+G) and toolkit (Ctrl+Shift+M) toolbar shortcuts.
+- Fixed the offline patch's JavaScript escaping error and separated overlapping theme controls.
+- Preserves library schema version 2, emulator configuration and existing PS4/PS5 launch integration.
+- Audits inspect recorded library metadata; unlinked paths do not prove files are missing from disk.

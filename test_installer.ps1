@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.8.1.exe'
+$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.8.2.exe'
 $installDir = Join-Path $env:RUNNER_TEMP 'Golden Emulator Install Test'
 $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'GoldenEmulator-Test-Profile'
 $dataDir = Join-Path $env:LOCALAPPDATA 'GoldenEmulator'
@@ -17,7 +17,7 @@ Run-Checked $installer @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"
 $exe = Join-Path $installDir 'GoldenEmulator.exe'
 if (!(Test-Path $exe)) { throw 'Installed EXE missing' }
 $info = (Get-Item $exe).VersionInfo
-if ($info.CompanyName -ne 'IGN1TE' -or $info.FileVersion -ne '0.8.1.0') { throw 'EXE branding metadata missing' }
+if ($info.CompanyName -ne 'IGN1TE' -or $info.FileVersion -ne '0.8.2.0') { throw 'EXE branding metadata missing' }
 Add-Type -AssemblyName System.Drawing
 $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
 if (!$icon) { throw 'EXE icon missing' }
