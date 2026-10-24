@@ -155,8 +155,9 @@ class Features:
             infos=z.infolist()
             if len(infos)>20000 or sum(i.file_size for i in infos)>MAX_BACKUP: raise ValueError('Backup is too large.')
             for i in infos:
-                rel=PurePosixPath(i.filename)
-                if rel.is_absolute() or '..' in rel.parts or '\\' in i.filename or ':' in i.filename or (i.external_attr>>16)&0o170000==0o120000:
+                raw_name=i.orig_filename
+                rel=PurePosixPath(raw_name)
+                if rel.is_absolute() or '..' in rel.parts or '\\' in raw_name or ':' in raw_name or (i.external_attr>>16)&0o170000==0o120000:
                     raise ValueError('Unsafe backup path.')
                 target=root/i.filename
                 if target.is_symlink(): raise ValueError('Save destination contains a symlink.')
