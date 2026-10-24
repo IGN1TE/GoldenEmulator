@@ -1,7 +1,7 @@
-GoldenEmulator 0.8.2 — Desktop app
+GoldenEmulator 0.9.0 — Desktop app
 
 1. Exit the older version through Settings > Exit GoldenEmulator.
-2. Run GoldenEmulator-Setup-0.8.2.exe.
+2. Run GoldenEmulator-Setup-0.9.0.exe.
 3. Open the GoldenEmulator desktop or Start menu shortcut.
 
 The library opens in a standalone desktop window. Close its X button to exit fully.
@@ -16,7 +16,11 @@ The installer adds Microsoft WebView2 if missing (internet required). Portable Z
 Controller: focus the app, press and release a button. D-pad/left stick moves; A/Cross selects; B/Circle goes back; LB/RB changes pages. Use keyboard/mouse for text and Windows file pickers.
 Close emulators normally after gameplay and return to GoldenEmulator. Exiting GoldenEmulator does not terminate games.
 
-Settings > Emulator setup: choose installed Dolphin, Xenia, PCSX2, Snes9x, Mesen, DuckStation, RPCS3 or verified Kyty --game EXEs. Kyty PS4 integration is experimental; game compatibility is unverified.
+Settings > Emulator setup: choose installed Dolphin, Xenia, PCSX2, Snes9x, Mesen, DuckStation, RPCS3 or shadPS4 / ShadPS4QtLauncher EXEs. Game compatibility depends on your installed emulator.
 Import game folders or use Locate game file for old entries. Emulators, firmware, BIOS and games are not included. PS5 can connect and open KYTY or another emulator EXE. Select games inside that emulator.
 
 Signing is deferred. The installer is unsigned and Windows may show SmartScreen warnings.
+
+Hub opens watched folders, path repairs, collections, diagnostics, updates and couch mode.
+Game page & settings contains artwork lookup, launch overrides, save backups, discs and playtime.
+Controller: Y/Triangle searches; X/Square opens Hub; Start/Menu cycles collections.

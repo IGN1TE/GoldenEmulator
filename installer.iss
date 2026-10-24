@@ -1,7 +1,7 @@
 [Setup]
 AppId=GoldenEmulator
 AppName=GoldenEmulator
-AppVersion=0.8.2
+AppVersion=0.9.0
 AppPublisher=IGN1TE
 SetupIconFile=GoldenEmulator.ico
 VersionInfoCompany=IGN1TE
@@ -13,7 +13,7 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=installer-dist
-OutputBaseFilename=GoldenEmulator-Setup-0.8.2
+OutputBaseFilename=GoldenEmulator-Setup-0.9.0
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
