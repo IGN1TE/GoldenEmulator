@@ -314,7 +314,7 @@ def handler_for(app,token,html,origin,stop):
     return Handler
 
 
-APP_VERSION = '0.8.1'
+APP_VERSION = '0.8.2'
 RELEASES_API = 'https://api.github.com/repos/IGN1TE/GoldenEmulator/releases?per_page=100'
 RELEASE_PREFIX = 'https://github.com/IGN1TE/GoldenEmulator/releases/tag/'
 

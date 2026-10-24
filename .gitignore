@@ -12,3 +12,5 @@ __pycache__/
 *.spec
 installer-dist/
 MicrosoftEdgeWebview2Setup.exe
+
+feature-pack-backups/

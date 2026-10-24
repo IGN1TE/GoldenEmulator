@@ -1,0 +1,1 @@
+.ge-tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:20px 0}.ge-tool-grid>div{border:1px solid #465578;border-radius:10px;padding:12px;color:#acbad5;font-size:12px}.ge-tool-grid strong{display:block;font-size:24px;color:#fff;margin-top:5px}#ge-library-tools{font-size:23px}#ge-tool-feedback{color:#ffcad5}
