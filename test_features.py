@@ -29,7 +29,9 @@ class FeatureTests(unittest.TestCase):
     def test_restore_rejects_traversal_before_writes(self):
         folder=self.h.backup_dir('g1');folder.mkdir(parents=True);name='20260101-120000-abcdef.zip'
         for bad in ('../escape','/absolute','C:/absolute','folder\\escape'):
-            with zipfile.ZipFile(folder/name,'w') as z:z.writestr(bad,'bad')
+            # Set the stored name explicitly: ZipInfo normalizes backslashes on Windows.
+            entry=zipfile.ZipInfo();entry.filename=bad
+            with zipfile.ZipFile(folder/name,'w') as z:z.writestr(entry,'bad')
             with self.assertRaises(ValueError):self.call('restore',id='g1',name=name)
             self.assertEqual((self.save/'slot.sav').read_text(),'original')
     def test_backup_and_restore_block_active_game(self):
