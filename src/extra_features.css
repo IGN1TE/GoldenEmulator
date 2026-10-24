@@ -1,0 +1,18 @@
+/* Optional appearance presets and library dashboard */
+body[data-ge-theme="gold"]{--cyan:#f5ca65;--muted:#c5bca9;--panel:#231b12;background:radial-gradient(ellipse at 65% 0%,#40301a 0,transparent 52%),#100e0c}
+body[data-ge-theme="gold"] .primary{background:linear-gradient(120deg,#78521b,#46371c);border-color:#d9b36a}
+body[data-ge-theme="gold"] nav button.active{background:#3a2a17;border-color:#c69b4e}
+body[data-ge-theme="midnight"]{--cyan:#86a9ff;--muted:#aebbdc;--panel:#11152a;background:radial-gradient(ellipse at 65% 0%,#171e48 0,transparent 52%),#060917}
+body[data-ge-theme="midnight"] .primary{background:linear-gradient(120deg,#222b72,#2b4789);border-color:#89a6ff}
+body.ge-compact .games{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+body.ge-compact .game-info{padding:8px}
+body.ge-large-text{font-size:19px}
+body.ge-large-text .game-info strong{font-size:17px}
+.ge-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
+.ge-metrics>div{background:#1c2640;border:1px solid #455275;padding:16px;border-radius:12px}
+.ge-metrics strong{display:block;font-size:24px}.ge-metrics small{display:block;color:#aab9d8}
+.ge-systems>div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ffffff22}
+.ge-toggle{display:flex!important;gap:10px;align-items:center}.ge-toggle input{width:auto!important;margin:0!important}
+#ge-extra-tools{border:1px solid #536388;border-radius:9px;padding:7px 11px;color:var(--cyan)}
+@media(max-width:1100px){body.ge-compact .games{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){body.ge-compact .games{grid-template-columns:repeat(2,minmax(0,1fr))}}
