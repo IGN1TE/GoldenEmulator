@@ -58,7 +58,7 @@ class NativeTests(unittest.TestCase):
             'Wii': ('g.wbfs', ['-b', '-e', 'g.wbfs']),
             'PlayStation 1': ('g.chd', ['-batch', '--', 'g.chd']),
             'PlayStation 3': ('EBOOT.BIN', ['--no-gui', 'EBOOT.BIN']),
-            'PlayStation 4': ('eboot.bin', ['--game', 'eboot.bin']),
+
         }
         for system, (game, args) in cases.items():
             with self.subTest(system=system):
@@ -69,16 +69,30 @@ class NativeTests(unittest.TestCase):
         for system in ('PlayStation 3', 'PlayStation 4', 'PlayStation 5'):
             self.assertFalse(ge.valid_game(system, Path('textures.bin')))
         self.assertFalse(ge.valid_game('PlayStation 4', Path('game.pkg')))
-    def test_kyty_requires_verified_cli_and_rejects_launcher(self):
+    def test_ps4_replaces_kyty_with_shadps4_and_persists(self):
         from unittest.mock import patch
-        exe = self.root/'kyty_emulator.exe'
-        with patch.object(ge.subprocess, 'run') as run:
-            run.return_value = Mock(returncode=0, stdout=b'kyty_emulator --game <dir|elf|zar>', stderr=b'')
-            ge.verify_kyty(exe)
-            self.assertEqual(run.call_args.args[0], [str(exe), '--help'])
-            run.return_value.stdout = b'Kyty script.lua'
-            with self.assertRaisesRegex(ValueError, 'verified'): ge.verify_kyty(exe)
-            with self.assertRaisesRegex(ValueError, 'not the Kyty launcher'): ge.verify_kyty(self.root/'kyty_launcher.exe')
+        self.app.config['PlayStation 4']=str(self.root/'kyty_emulator.exe')
+        for name, args in [('shadPS4.exe',['-g']),('ShadPS4QtLauncher.exe',['-d','-g']),('shadps4-qtlauncher.exe',['-d','-g'])]:
+            exe=self.root/name;exe.touch()
+            game=self.root/'eboot.bin';game.touch()
+            self.app.picker=lambda *unused:str(exe)
+            with patch.object(ge.subprocess,'run') as probe:
+                self.app.choose_emulator('PlayStation 4')
+                probe.assert_not_called()
+            app=ge.Launcher(self.app.data_dir,popen=self.spawn)
+            self.assertEqual(app.config['PlayStation 4'],str(exe))
+            self.assertEqual(app.configurations()['PlayStation 4']['name'],'shadPS4')
+            app.state['games'][0].update(system='PlayStation 4',nativePath=str(game))
+            app.launch('g1')
+            self.spawn.assert_called_with([str(exe)]+args+[str(game)],cwd=str(self.root),shell=False)
+
+    def test_ps4_other_exe_connects_and_opens_without_assumed_flags(self):
+        self.app.picker=lambda *unused:str(self.exe)
+        self.app.choose_emulator('PlayStation 4')
+        self.app.state['games'][0].update(system='PlayStation 4',nativePath='')
+        self.app.launch('g1')
+        self.spawn.assert_called_once_with([str(self.exe)],cwd=str(self.root),shell=False)
+
     def test_legacy_library_and_config_survive_all_console_additions(self):
         self.app.config['PlayStation 2'] = str(self.exe)
         ge.atomic_json(self.app.config_file, self.app.config)

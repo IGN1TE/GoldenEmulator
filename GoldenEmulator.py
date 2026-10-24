@@ -18,7 +18,7 @@ SYSTEMS = {
     'Wii': ('Dolphin', {'.iso', '.wbfs', '.rvz', '.ciso'}),
     'PlayStation 1': ('DuckStation', {'.cue', '.chd', '.pbp', '.m3u'}),
     'PlayStation 3': ('RPCS3', {'.bin', '.elf', '.self'}),
-    'PlayStation 4': ('Kyty --game (experimental)', {'.bin', '.elf', '.zar'}),
+    'PlayStation 4': ('shadPS4', {'.bin', '.elf', '.zar'}),
     'GameCube': ('Dolphin', {'.iso', '.gcm', '.rvz', '.ciso'}),
     'Xbox 360': ('Xenia', {'.iso', '.xex'}),
     'PlayStation 2': ('PCSX2', {'.iso', '.bin', '.chd', '.cso', '.cue'}),
@@ -81,25 +81,20 @@ def launch_arguments(system, exe, game):
     if system in ('SNES', 'NES'): return [str(exe), str(game)]
     if system == 'PlayStation 1': return [str(exe), '-batch', '--', str(game)]
     if system == 'PlayStation 3': return [str(exe), '--no-gui', str(game)]
-    if system == 'PlayStation 4': return [str(exe), '--game', str(game)]
+    if system == 'PlayStation 4':
+        if ps4_profile(exe)=='shadps4-launcher': return [str(exe), '-d', '-g', str(game)]
+        if ps4_profile(exe)=='shadps4': return [str(exe), '-g', str(game)]
+        return [str(exe)]
     if system == 'Xbox 360': return [str(exe), str(game)]
     if system == 'PlayStation 2': return [str(exe), '-batch', '--', str(game)]
     raise ValueError('PS5 launching is not connected. No compatibility is implied.')
 
 
-def verify_kyty(exe):
-    """Check the selected build's interface, not its game compatibility."""
-    if Path(exe).name.lower() != 'kyty_emulator.exe':
-        raise ValueError('Choose kyty_emulator.exe, not the Kyty launcher or updater.')
-    try:
-        result = subprocess.run([str(exe), '--help'], cwd=str(Path(exe).parent),
-                                capture_output=True, timeout=10, shell=False,
-                                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-        help_text = (result.stdout + result.stderr).decode('utf-8', errors='replace')
-    except (OSError, subprocess.TimeoutExpired) as e:
-        raise ValueError('Could not verify this Kyty build’s --game interface.') from e
-    if result.returncode != 0 or '--game <dir|elf|zar>' not in help_text:
-        raise ValueError('This Kyty build does not expose the verified --game interface. Original Lua-based Kyty builds require separate setup.')
+def ps4_profile(exe):
+    name=Path(exe).stem.lower().replace('-', '').replace('_', '')
+    if name.startswith('shadps4'):
+        return 'shadps4-launcher' if 'launcher' in name else 'shadps4'
+    return 'custom'
 
 
 def valid_game(system, path):
@@ -171,7 +166,6 @@ class Launcher:
         if not path: return {'cancelled':True}
         exe = Path(path).resolve(strict=True)
         if not exe.is_file() or exe.suffix.lower()!='.exe': raise ValueError('Choose the installed emulator EXE.')
-        if system == 'PlayStation 4': verify_kyty(exe)
         with self.lock:
             new = dict(self.config); new[system]=str(exe)
             atomic_json(self.config_file,new); self.config=new
@@ -221,13 +215,14 @@ class Launcher:
             g=next((g for g in self.state['games'] if g['id']==gid),None)
             if not g:raise ValueError('Game is no longer in the library.')
             s=g['system']
-            if s=='PlayStation 5':return self.open_emulator(s)
+            if s=='PlayStation 5' or (s=='PlayStation 4' and ps4_profile(self.config.get(s,''))=='custom'):return self.open_emulator(s)
             exe=Path(self.config.get(s,''))
             if not exe.is_file() or exe.suffix.lower()!='.exe':raise ValueError('Set up '+SYSTEMS[s][0]+' in Emulator setup first.')
             game=Path(g.get('nativePath',''))
             if not game.is_absolute() or not game.is_file():raise ValueError('Game file not found. Use Locate game file to link its Windows path.')
             if not valid_game(s, game):raise ValueError('Unsupported game file for this console.')
-            if s == 'PlayStation 4': verify_kyty(exe.resolve())
+            if s == 'PlayStation 4' and game.suffix.lower() == '.zar':
+                raise ValueError('For shadPS4, locate the extracted eboot.bin or ELF file instead of a ZArchive.')
             args=launch_arguments(s,exe.resolve(),game.resolve())
             try:self.process=self.popen(args,cwd=str(exe.resolve().parent),shell=False)
             except OSError as e:raise ValueError('Windows could not start the emulator: '+str(e)) from e
@@ -319,7 +314,7 @@ def handler_for(app,token,html,origin,stop):
     return Handler
 
 
-APP_VERSION = '0.8.0'
+APP_VERSION = '0.8.1'
 RELEASES_API = 'https://api.github.com/repos/IGN1TE/GoldenEmulator/releases?per_page=100'
 RELEASE_PREFIX = 'https://github.com/IGN1TE/GoldenEmulator/releases/tag/'
 

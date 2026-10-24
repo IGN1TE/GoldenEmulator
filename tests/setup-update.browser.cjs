@@ -14,6 +14,7 @@ test('PS5 setup connects custom executable and update installs without external 
  await route.fulfill({json:data});});
  await page.goto(`http://127.0.0.1:${server.address().port}`);await page.waitForFunction(()=>typeof ready!=='undefined'&&ready);
  await page.evaluate(()=>emulatorSetup());await page.locator('[data-emulator="PlayStation 5"]').click();await page.locator('[data-open-emulator="PlayStation 5"]').click();assert.ok(calls.includes('/api/open-emulator'));
+ await page.locator('[data-emulator="PlayStation 4"]').click();await page.locator('[data-open-emulator="PlayStation 4"]').click();assert.equal(await page.getByText('PS4: select kyty_emulator.exe',{exact:false}).count(),0);
  await page.evaluate(()=>{modal.close();document.getElementById('settings').click()});await page.locator('#check-updates').click();await page.waitForFunction(()=>!updateBusy);assert.ok(calls.includes('/api/install-update'));assert.equal(browser.contexts()[0].pages().length,1);
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 });
