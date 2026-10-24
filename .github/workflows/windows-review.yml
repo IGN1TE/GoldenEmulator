@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['.github/workflows/windows-review.yml', 'src/**', 'tests/**', 'GoldenEmulator.py', 'test_native.py', 'test_installer.ps1', 'installer.iss', 'version-info.txt']
+    paths: ['.github/workflows/windows-review.yml', 'src/**', 'tests/**', 'GoldenEmulator.py', 'test_native.py', 'features.py', 'test_features.py', 'build.py', 'test_installer.ps1', 'installer.iss', 'version-info.txt']
 permissions:
   contents: write
 jobs:
@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Test native launcher on Windows
-        run: python -m unittest -v test_native.py
+        run: python -m unittest -v test_native.py test_features.py
       - name: Test frontend logic
         run: |
           python build.py
@@ -25,7 +25,7 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.62.1
           npx playwright install chromium
-          node --test tests/carousel.browser.cjs tests/setup-update.browser.cjs
+          node --test tests/carousel.browser.cjs tests/setup-update.browser.cjs tests/hub.browser.cjs
       - name: Package Windows executable
         run: |
           python -m pip install pyinstaller==6.16.0 pywebview==6.2.1
@@ -42,10 +42,10 @@ jobs:
       - name: Create review ZIP
         shell: pwsh
         run: |
-          git archive --format=zip --output=GoldenEmulator-Desktop-0.8.2-Source.zip HEAD
+          git archive --format=zip --output=GoldenEmulator-Desktop-0.9.0-Source.zip HEAD
           Copy-Item START-HERE.txt dist\START-HERE.txt
-          Compress-Archive -Path dist\GoldenEmulator.exe,dist\START-HERE.txt -DestinationPath GoldenEmulator-Desktop-0.8.2-Windows.zip
-          Get-FileHash GoldenEmulator-Desktop-0.8.2-Windows.zip -Algorithm SHA256 | Format-List
+          Compress-Archive -Path dist\GoldenEmulator.exe,dist\START-HERE.txt -DestinationPath GoldenEmulator-Desktop-0.9.0-Windows.zip
+          Get-FileHash GoldenEmulator-Desktop-0.9.0-Windows.zip -Algorithm SHA256 | Format-List
       - name: Fetch Microsoft WebView2 bootstrapper
         shell: pwsh
         run: |
@@ -62,20 +62,20 @@ jobs:
         run: ./test_installer.ps1
       - uses: actions/upload-artifact@v4
         with:
-          name: GoldenEmulator-Desktop-0.8.2-Windows
+          name: GoldenEmulator-Desktop-0.9.0-Windows
           path: |
-            GoldenEmulator-Desktop-0.8.2-Windows.zip
-            installer-dist/GoldenEmulator-Setup-0.8.2.exe
-            GoldenEmulator-Desktop-0.8.2-Source.zip
+            GoldenEmulator-Desktop-0.9.0-Windows.zip
+            installer-dist/GoldenEmulator-Setup-0.9.0.exe
+            GoldenEmulator-Desktop-0.9.0-Source.zip
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release view v0.8.2 *> $null
+          gh release view v0.9.0 *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload v0.8.2 GoldenEmulator-Desktop-0.8.2-Windows.zip installer-dist/GoldenEmulator-Setup-0.8.2.exe GoldenEmulator-Desktop-0.8.2-Source.zip --clobber
+            gh release upload v0.9.0 GoldenEmulator-Desktop-0.9.0-Windows.zip installer-dist/GoldenEmulator-Setup-0.9.0.exe GoldenEmulator-Desktop-0.9.0-Source.zip --clobber
           } else {
-            gh release create v0.8.2 GoldenEmulator-Desktop-0.8.2-Windows.zip installer-dist/GoldenEmulator-Setup-0.8.2.exe GoldenEmulator-Desktop-0.8.2-Source.zip --target "$env:GITHUB_SHA" --title "GoldenEmulator 0.8.2 — Desktop app" --notes-file release-notes.md
+            gh release create v0.9.0 GoldenEmulator-Desktop-0.9.0-Windows.zip installer-dist/GoldenEmulator-Setup-0.9.0.exe GoldenEmulator-Desktop-0.9.0-Source.zip --target "$env:GITHUB_SHA" --title "GoldenEmulator 0.9.0 — Desktop app" --notes-file release-notes.md
           }
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
