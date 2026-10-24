@@ -5,6 +5,9 @@ const ControllerInput = (() => {
     const down = i => !!pad.buttons[i]?.pressed;
     if (down(1)) return 'back';
     if (down(0)) return 'accept';
+    if (down(3)) return 'search';
+    if (down(2)) return 'hub';
+    if (down(9)) return 'collections';
     if (down(4)) return 'previous';
     if (down(5)) return 'next';
     const x=pad.axes[0]||0,y=pad.axes[1]||0;
@@ -47,6 +50,7 @@ else (()=>{
     let list=items(),e=document.activeElement;
     if(!list.includes(e)){restore();e=document.activeElement;list=items();}
     if(selectMode&&e.tagName!=='SELECT')selectMode=false;
+    if(typeof LibraryHub!=='undefined'){if(action==='search'){LibraryHub.controllerSearch();queueMicrotask(restore);return;}if(action==='hub'){LibraryHub.home().catch(e=>toast(e.message));return;}if(action==='collections'){LibraryHub.nextCollection();restore();return;}}
     if(action==='back'){if(selectMode){selectMode=false;toast('Selection saved.');return;}if(modal.open){modal.close();return;}navigate('Systems');restore();return;}
     if(action==='previous'||action==='next'){if(modal.open)return;const pages=['Systems','Library','Favorites'];let i=pages.indexOf(page);navigate(pages[(Math.max(0,i)+(action==='next'?1:2))%3]);restore();return;}
     if(action==='accept'){

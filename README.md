@@ -1,21 +1,25 @@
-# GoldenEmulator 0.8.2
+# GoldenEmulator 0.9.0
 
-Fixes the console carousel jumping back when moving between emulators, while preserving proportional artwork during expansion and selection. Adds SNES (Snes9x), NES (Mesen), Wii (Dolphin), PS1 (DuckStation), PS3 (RPCS3), and experimental PS4 (Kyty --game).
+A Windows desktop launcher for your own installed emulators and game library. Download **GoldenEmulator-Setup-0.9.0.exe** from [Releases](https://github.com/IGN1TE/GoldenEmulator/releases/latest), close the old app and install. Settings → Check for updates shows release notes, downloads and verifies the official installer, and reopens the app after installation.
 
-Download GoldenEmulator-Setup-0.8.2.exe from Releases, exit the old app and install. Settings > Check for updates also discovers this release. The standalone desktop window, gold logo, controller navigation, library, artwork, favourites, notes and existing emulator paths are retained. User data stays in %LOCALAPPDATA%\GoldenEmulator with the same version-2 schema.
+## Library Hub
 
-Choose installed EXEs under Settings > Emulator setup. Configure BIOS, firmware and controllers in each emulator first. No emulators, firmware or games are included.
+Use **Hub** in the toolbar for watched folders, missing-file repair, custom collections, emulator health checks, diagnostics, updates and couch mode. Open a game and choose **Game page & settings** for artwork/metadata lookup, rating, completion status, screenshots, per-game launch settings, playtime, save backups and multi-disc grouping. See [release-notes.md](release-notes.md) for the complete 15-feature list and operational limits.
 
-Supported imports: SNES SFC/SMC; NES NES/UNF/UNIF; Wii ISO/WBFS/RVZ/CISO; PS1 CUE/CHD/PBP/M3U; PS3 EBOOT.BIN/ELF/SELF; PS4 eboot.bin/ELF/ZAR. Existing GameCube, Xbox 360 and PS2 formats remain. Install PS3 packages in RPCS3 first. PS4 PKG installation is not supported.
+Watched folders optionally scan once a minute while the app is open; new games wait for review. Portable links record a watched root plus a relative path. Reconnect a moved root and review repairs. Metadata searches send the title to Wikimedia, never local paths, and require choosing a match. Artwork availability varies.
 
-PS4 uses shadPS4.exe (-g game) or ShadPS4QtLauncher.exe (-d -g game). Choose the installed EXE in Settings. Other EXEs open without game arguments. PS5 retains its separate custom emulator connection.
+Select each game's save folder before creating backups. Close the emulator before backing up/restoring. Restoration creates a safety ZIP and overwrites matching files; unrelated files remain. Optional automatic backup runs before launch. Playtime records the emulator process while GoldenEmulator stays open, including menus and pauses; hand-off launchers are excluded.
 
-shadPS4 references: https://github.com/shadps4-emu/shadPS4 and https://github.com/shadps4-emu/shadps4-qtlauncher. Game compatibility depends on your installed build.
+The library stays in `%LOCALAPPDATA%\GoldenEmulator` with schema version 2. Hub data uses `features.json`; save archives use `save-backups`. The existing library backup and Hub export are separate. Hub restore imports descriptions, ratings, collections and screenshots for matching IDs; select executable, configuration and save paths locally on each machine. Moving your full data folder retains session history and portable bindings; reconnect roots afterwards.
 
-Editable sources are now tracked in src/, build.py and tests/. Run python build.py, python -m unittest test_native.py, and node --test tests/*.test.cjs. Windows packaging uses PyInstaller 6.16.0, pywebview 6.2.1 and Inno Setup. The workflow checks branding, desktop readiness, second launch, shutdown, reinstall/uninstall and saved-data preservation before publishing. Executables remain unsigned.
+Controller controls: D-pad/left stick navigate, A/Cross select, B/Circle back, LB/RB switch pages, Y/Triangle open search keyboard, X/Square open Hub, Start/Menu cycle collections. Keyboard/mouse controls remain available. Fullscreen and couch mode are independent settings.
 
-Version 0.8.2: PS5 setup accepts KYTY or another installed EXE. Open emulator starts its interface; load games there. Check for updates downloads and verifies the official installer, runs it and reopens the app. The first upgrade from older versions still needs the new installer.
+## Emulator setup
 
-## Version 0.8.2 additions
+Choose installed EXEs under Settings → Emulator setup. Configure BIOS, firmware, graphics and controllers in each emulator. Health checks verify executable presence and provide setup guidance; they do not validate firmware or compatibility. No emulators, firmware or games are included.
 
-Recently Played, launch sorting and details, CSV exports, library dashboards and audits, confirmed bulk favourites, themes, card sizing, larger text and reduced motion. Toolbar shortcuts: Alt+G dashboard; Ctrl+Shift+G appearance; Ctrl+Shift+M maintenance. F opens Favourites and L opens Library when not editing or in a dialog.
+Supported presets: Dolphin (GameCube/Wii), Xenia (Xbox 360), PCSX2 (PS2), Snes9x (SNES), Mesen (NES), DuckStation (PS1), RPCS3 (PS3), and shadPS4 (PS4). PS3 uses extracted EBOOT.BIN/ELF/SELF; install packages and firmware in RPCS3. PS4 uses shadPS4.exe (`-g game`) or ShadPS4QtLauncher.exe (`-d -g game`) with extracted eboot.bin/ELF. Other PS4 EXEs and PS5 custom EXEs open their interface only; load games there. A connected EXE does not establish playable compatibility.
+
+## Development
+
+Editable sources are in `src/`, `GoldenEmulator.py` and `features.py`. `python build.py` generates the self-contained UI. Run `python -m unittest -v test_native.py test_features.py` and `node --test tests/*.test.cjs`. Browser checks use Playwright: `node --test tests/*.browser.cjs` after installing Chromium. Windows CI also verifies packaged runtime, installer, relaunch, shutdown, uninstall and saved-data preservation before publishing. Packaging uses PyInstaller, pywebview and Inno Setup. Executables are unsigned.

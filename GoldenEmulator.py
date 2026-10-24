@@ -11,6 +11,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import webbrowser
+from features import Features
 
 SYSTEMS = {
     'SNES': ('Snes9x', {'.sfc', '.smc'}),
@@ -146,6 +147,8 @@ class Launcher:
             if not isinstance(raw, dict): raise ValueError('Emulator settings are damaged.')
             self.config = {s:p for s,p in raw.items() if s in SYSTEMS and isinstance(p,str)}
 
+        self.features = Features(self, atomic_json, scan_folder, valid_game)
+
     def save(self, data):
         new = validate_state(data)
         with self.lock:
@@ -179,6 +182,7 @@ class Launcher:
             if not exe.is_file() or exe.suffix.lower() != '.exe':
                 raise ValueError('Choose an EXE in Emulator setup first.')
             self.process = self.popen([str(exe.resolve())], cwd=str(exe.resolve().parent), shell=False)
+            self.features.begin(None,False)
             self.process_game = {'id':None, 'title':system + ' emulator', 'system':system}
             return {'started':True, 'pid':self.process.pid, 'warning':'Emulator opened. Select your game inside the emulator.'}
 
@@ -205,6 +209,10 @@ class Launcher:
             if self.process:
                 code=self.process.poll()
                 if code is None:return {'running':True,'game':self.process_game,'pid':self.process.pid}
+                self.features.finish(code)
+                if getattr(self,'window',None):
+                    try:self.window.restore();self.window.show()
+                    except Exception:pass
                 self.last_exit={'game':self.process_game,'exitCode':code,'ended':int(time.time()*1000)}
                 self.process=None
             return {'running':False,'lastExit':self.last_exit}
@@ -215,8 +223,18 @@ class Launcher:
             g=next((g for g in self.state['games'] if g['id']==gid),None)
             if not g:raise ValueError('Game is no longer in the library.')
             s=g['system']
-            if s=='PlayStation 5' or (s=='PlayStation 4' and ps4_profile(self.config.get(s,''))=='custom'):return self.open_emulator(s)
-            exe=Path(self.config.get(s,''))
+            extra=self.features.data['games'].get(gid,{})
+            chosen=extra.get('emulator') or self.config.get(s,'')
+            if s=='PlayStation 5' or (s=='PlayStation 4' and ps4_profile(chosen)=='custom'):
+                if extra.get('emulator'):
+                    exe=Path(chosen)
+                    if not exe.is_file() or exe.suffix.lower()!='.exe':raise ValueError('Per-game emulator is missing.')
+                    self.process=self.popen([str(exe.resolve())],cwd=str(exe.resolve().parent),shell=False)
+                    self.process_game={'id':None,'title':s+' emulator','system':s}
+                    self.features.begin(gid,False)
+                    return {'started':True,'pid':self.process.pid,'warning':'Emulator opened. Select the game inside it. Playtime is not tracked.'}
+                return self.open_emulator(s)
+            exe=Path(chosen)
             if not exe.is_file() or exe.suffix.lower()!='.exe':raise ValueError('Set up '+SYSTEMS[s][0]+' in Emulator setup first.')
             game=Path(g.get('nativePath',''))
             if not game.is_absolute() or not game.is_file():raise ValueError('Game file not found. Use Locate game file to link its Windows path.')
@@ -224,8 +242,11 @@ class Launcher:
             if s == 'PlayStation 4' and game.suffix.lower() == '.zar':
                 raise ValueError('For shadPS4, locate the extracted eboot.bin or ELF file instead of a ZArchive.')
             args=launch_arguments(s,exe.resolve(),game.resolve())
+            args=self.features.launch_config(gid,exe,args)
+            if self.features.data['prefs'].get('autoBackup') and extra.get('savePath'):self.features.backup(gid)
             try:self.process=self.popen(args,cwd=str(exe.resolve().parent),shell=False)
             except OSError as e:raise ValueError('Windows could not start the emulator: '+str(e)) from e
+            self.features.begin(gid,not (s=='PlayStation 4' and ps4_profile(exe)=='shadps4-launcher'))
             self.process_game={'id':gid,'title':g['title'],'system':s}
             g['lastPlayed']=int(time.time()*1000);g['launchCount']=g.get('launchCount',0)+1
             warning=None
@@ -278,6 +299,7 @@ def handler_for(app,token,html,origin,stop):
                 data=json.loads(self.rfile.read(n))
                 if not isinstance(data,dict):raise ValueError('Expected an object.')
                 if self.path=='/api/state': result=app.save(data)
+                elif self.path=='/api/features':result=app.features.dispatch(data)
                 elif self.path=='/api/config':result=app.choose_emulator(data.get('system'))
                 elif self.path=='/api/scan':
                     s=data.get('system')
@@ -298,7 +320,7 @@ def handler_for(app,token,html,origin,stop):
                     if not app.update_lock.acquire(blocking=False): raise ValueError('An update is already in progress.')
                     try:
                         if app.status()['running']: raise ValueError('Close the running emulator before updating.')
-                        result=install_update(app.data_dir)
+                        result=install_update(app.data_dir,progress=lambda stage,received,total:app.features.update_progress.update(stage=stage,received=received,total=total))
                     except Exception:
                         app.update_lock.release()
                         raise
@@ -309,12 +331,17 @@ def handler_for(app,token,html,origin,stop):
                     self.send(200,{'stopped':True});threading.Thread(target=stop,daemon=True).start();return
                 else:self.send(404,{'error':'Not found.'});return
                 self.send(200,result)
-            except (ValueError,OSError,KeyError,TypeError) as e:self.send(400,{'error':str(e)})
+            except (ValueError,OSError,KeyError,TypeError) as e:
+                if self.path in ('/api/launch','/api/open-emulator'):
+                    try:app.features.log('error',str(e),data.get('id'))
+                    except Exception:pass
+                if self.path=='/api/install-update':app.features.update_progress.update(stage='error',error=str(e))
+                self.send(400,{'error':str(e)})
             except Exception:self.send(500,{'error':'An unexpected launcher error occurred. Restart GoldenEmulator.'})
     return Handler
 
 
-APP_VERSION = '0.8.2'
+APP_VERSION = '0.9.0'
 RELEASES_API = 'https://api.github.com/repos/IGN1TE/GoldenEmulator/releases?per_page=100'
 RELEASE_PREFIX = 'https://github.com/IGN1TE/GoldenEmulator/releases/tag/'
 
@@ -338,7 +365,7 @@ def select_update(releases, current=APP_VERSION):
             expected='https://github.com/IGN1TE/GoldenEmulator/releases/download/'+url.rsplit('/',1)[1]+'/'+asset['name']
             if download!=expected:continue
             if version>latest:
-                latest=version;result={'current':current,'latest':'.'.join(map(str,version)),'available':True,'url':url,'prerelease':release.get('prerelease') is True,'download':download,'name':asset['name'],'size':asset.get('size'),'digest':asset.get('digest')}
+                latest=version;result={'current':current,'latest':'.'.join(map(str,version)),'available':True,'url':url,'prerelease':release.get('prerelease') is True,'download':download,'name':asset['name'],'size':asset.get('size'),'digest':asset.get('digest'),'notes':str(release.get('body') or '')[:12000]}
     return result
 
 
@@ -354,12 +381,13 @@ def check_updates():
         raise ValueError('Could not check for updates. Check your internet connection and try again. GitHub may be temporarily unavailable or rate-limited.') from e
 
 
-def install_update(data_dir):
+def install_update(data_dir, progress=None):
     """Fetch only an installer selected from our release API; verify before running."""
     import hashlib
     import re
     import tempfile
     import urllib.request
+    if progress:progress('checking',0,0)
     update=check_updates()
     if not update['available']: raise ValueError('You are already up to date.')
     digest=update.get('digest')
@@ -379,8 +407,11 @@ def install_update(data_dir):
                 received+=len(chunk)
                 if received>size:raise ValueError('Installer download exceeded its expected size.')
                 output.write(chunk);hashed.update(chunk)
+                if progress:progress('downloading',received,size)
+        if progress:progress('verifying',received,size)
         if received!=size or hashed.hexdigest()!=digest[7:].lower():
             raise ValueError('Installer verification failed. Nothing was installed; try again.')
+        if progress:progress('installing',received,size)
         subprocess.Popen([str(target),'/SILENT','/SP-','/NORESTART','/RESTARTAPP=1'],cwd=str(target.parent),shell=False)
     except Exception:
         target.unlink(missing_ok=True)
@@ -429,7 +460,7 @@ def main():
         def picker(kind,system):
             if kind=='folder':result=window.create_file_dialog(webview.FileDialog.FOLDER)
             else:
-                types=('Windows executable (*.exe)',) if kind=='emulator' else ('Game files ('+';'.join('*'+x for x in SYSTEMS[system][1])+')',)
+                types=('Configuration files (*.*)',) if kind=='config' else ('Windows executable (*.exe)',) if kind=='emulator' else ('Game files ('+';'.join('*'+x for x in SYSTEMS[system][1])+')',)
                 result=window.create_file_dialog(webview.FileDialog.OPEN,allow_multiple=False,file_types=types)
             return result[0] if result else ''
         app=Launcher(data_dir,picker)

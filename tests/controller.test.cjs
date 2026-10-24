@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const {read,create,neighbor}=require('../src/controller.js');
 const pad=(buttons=[],axes=[0,0],mapping='standard')=>({mapping,axes,buttons:Array.from({length:17},(_,i)=>({pressed:buttons.includes(i)}))});
-test('standard face buttons, shoulder buttons and D-pad map correctly',()=>{for(const [i,a] of [[0,'accept'],[1,'back'],[4,'previous'],[5,'next'],[12,'up'],[13,'down'],[14,'left'],[15,'right']])assert.equal(read(pad([i])),a);});
+test('standard face buttons, shoulder buttons and D-pad map correctly',()=>{for(const [i,a] of [[0,'accept'],[1,'back'],[2,'hub'],[3,'search'],[9,'collections'],[4,'previous'],[5,'next'],[12,'up'],[13,'down'],[14,'left'],[15,'right']])assert.equal(read(pad([i])),a);});
 test('stick deadzone ignores drift and diagonals use dominant direction',()=>{assert.equal(read(pad([],[.3,-.4])),'');assert.equal(read(pad([],[.8,-.6])),'right');assert.equal(read(pad([],[.2,-.9])),'up');});
 test('unmapped and disconnected controllers cannot activate controls',()=>{assert.equal(read(pad([0],[0,0],'')),'');assert.equal(read(null),'');});
 test('activation requires neutral after connection and does not repeat when held',()=>{const g=create();assert.equal(g('accept',0),'');g('',1);assert.equal(g('accept',2),'accept');assert.equal(g('accept',1000),'');g('',1001);assert.equal(g('accept',1002),'accept');});
