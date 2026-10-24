@@ -23,7 +23,7 @@ const LibraryHub = (()=>{
  }
  async function prefs(patch){const next={...data.prefs,...patch};if(NATIVE)await request('prefs',next);else{localStorage.setItem('ge-hub-v1',JSON.stringify({...data,prefs:next}))}data.prefs=next;applyPrefs()}
  function show(title,body){openDialog(`<div class="dialog-top"><span>LIBRARY HUB</span><button data-close class="close" aria-label="Close">×</button></div><h2>${esc(title)}</h2>${body}`);modal.classList.add('ge-hub');}
- modal.addEventListener('close',()=>modal.classList.remove('ge-hub'));
+ modal.addEventListener('close',()=>{if(!modal.open)modal.classList.remove('ge-hub')});
  function displayGames(list){return list.filter(g=>{const parent=extra(g.id).discParent;return (!parent||parent===g.id||!state.games.some(x=>x.id===parent))&&(!collection||extra(g.id).collections?.includes(collection))})}
  visibleGames=function(){return displayGames(originalVisible())};
  cards=function(list){return originalCards(displayGames(list))};
