@@ -73,8 +73,11 @@ for ($i=0; $i -lt 200; $i++) {
   Start-Sleep -Milliseconds 200
 }
 if (!$reopened) { throw 'Update installer did not reopen the desktop app' }
+$updatedProcesses = @(Get-Process GoldenEmulator -ErrorAction Stop)
 Run-Checked $exe @('--stop')
-for ($i=0; $i -lt 100 -and (Test-Path (Join-Path $dataDir 'runtime.json')); $i++) { Start-Sleep -Milliseconds 200 }
+foreach ($updatedProcess in $updatedProcesses) {
+  if (!$updatedProcess.WaitForExit(15000)) { throw 'Updated launcher did not exit completely' }
+}
 
 Run-Checked (Join-Path $installDir 'unins000.exe') @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART')
 if (Test-Path $exe) { throw 'Uninstall left installed EXE' }

@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['.github/workflows/windows-review.yml']
+    paths: ['.github/workflows/windows-review.yml', 'src/**', 'tests/**', 'GoldenEmulator.py', 'test_native.py', 'test_installer.ps1', 'installer.iss', 'version-info.txt']
 permissions:
   contents: write
 jobs:
