@@ -1,7 +1,7 @@
 [Setup]
 AppId=GoldenEmulator
 AppName=GoldenEmulator
-AppVersion=0.7.1
+AppVersion=0.8.0
 AppPublisher=IGN1TE
 SetupIconFile=GoldenEmulator.ico
 VersionInfoCompany=IGN1TE
@@ -13,7 +13,7 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=installer-dist
-OutputBaseFilename=GoldenEmulator-Setup-0.7.1
+OutputBaseFilename=GoldenEmulator-Setup-0.8.0
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -39,7 +39,14 @@ Name: "{autodesktop}\GoldenEmulator"; Filename: "{app}\GoldenEmulator.exe"; Task
 Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "Installing Microsoft WebView2 Runtime..."; Flags: runhidden waituntilterminated; Check: WebViewMissing
 Filename: "{app}\GoldenEmulator.exe"; Description: "Open GoldenEmulator"; Flags: nowait postinstall skipifsilent
 
+Filename: "{app}\GoldenEmulator.exe"; Flags: nowait; Check: RestartAfterUpdate
+
 [Code]
+function RestartAfterUpdate: Boolean;
+begin
+  Result := ExpandConstant('{param:RESTARTAPP|0}') <> '0';
+end;
+
 function WebViewMissing: Boolean;
 var
   Version: String;

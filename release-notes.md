@@ -1,9 +1,6 @@
-GoldenEmulator 0.7.1
+GoldenEmulator 0.8.0
 
-- Fixed the carousel jumping back toward the first console when selecting the next or previous emulator.
-- Console selection now updates cards in place, preserving scroll position and keyboard/controller focus.
-- Scrolling waits for card expansion to finish; rapid navigation cancels outdated scroll requests.
-- Added a browser regression test for navigation from later consoles, rapid input, wraparound, reduced motion and proportional artwork.
-- Retains all v0.7.0 consoles, experimental Kyty configuration, saved libraries, controller support, desktop window, logo and update checker. PS5 remains library-only.
-
-Install GoldenEmulator-Setup-0.7.1.exe after exiting the app, or use Settings > Check for updates.
+- PS5 setup now accepts KYTY or another installed emulator EXE and saves the connection.
+- Open emulator is available from PS5 setup and game details. Games are selected inside the emulator; connecting an EXE does not imply PS5 game compatibility.
+- Check for updates downloads and verifies the official installer, installs it and reopens GoldenEmulator. Failed verification never runs an installer.
+- Saved libraries and existing emulator links are retained.

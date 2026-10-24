@@ -1,12 +1,12 @@
-GoldenEmulator 0.7.1 — Desktop app
+GoldenEmulator 0.8.0 — Desktop app
 
 1. Exit the older version through Settings > Exit GoldenEmulator.
-2. Run GoldenEmulator-Setup-0.7.1.exe.
+2. Run GoldenEmulator-Setup-0.8.0.exe.
 3. Open the GoldenEmulator desktop or Start menu shortcut.
 
 The library opens in a standalone desktop window. Close its X button to exit fully.
 Opening the shortcut again restores the current window instead of opening a browser.
-Settings includes Check for updates. External download pages open in your default browser.
+Settings > Check for updates downloads, verifies and installs new releases, then reopens GoldenEmulator.
 The fullscreen toolbar button toggles desktop fullscreen.
 
 Your saved library and emulator paths are kept in %LOCALAPPDATA%\GoldenEmulator.
@@ -17,6 +17,6 @@ Controller: focus the app, press and release a button. D-pad/left stick moves; A
 Close emulators normally after gameplay and return to GoldenEmulator. Exiting GoldenEmulator does not terminate games.
 
 Settings > Emulator setup: choose installed Dolphin, Xenia, PCSX2, Snes9x, Mesen, DuckStation, RPCS3 or verified Kyty --game EXEs. Kyty PS4 integration is experimental; game compatibility is unverified.
-Import game folders or use Locate game file for old entries. Emulators, firmware, BIOS and games are not included. PS5 is library-only.
+Import game folders or use Locate game file for old entries. Emulators, firmware, BIOS and games are not included. PS5 can connect and open KYTY or another emulator EXE. Select games inside that emulator.
 
 Signing is deferred. The installer is unsigned and Windows may show SmartScreen warnings.

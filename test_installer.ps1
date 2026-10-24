@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.7.1.exe'
+$installer = Join-Path $PWD 'installer-dist\GoldenEmulator-Setup-0.8.0.exe'
 $installDir = Join-Path $env:RUNNER_TEMP 'Golden Emulator Install Test'
 $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'GoldenEmulator-Test-Profile'
 $dataDir = Join-Path $env:LOCALAPPDATA 'GoldenEmulator'
@@ -17,7 +17,7 @@ Run-Checked $installer @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"
 $exe = Join-Path $installDir 'GoldenEmulator.exe'
 if (!(Test-Path $exe)) { throw 'Installed EXE missing' }
 $info = (Get-Item $exe).VersionInfo
-if ($info.CompanyName -ne 'IGN1TE' -or $info.FileVersion -ne '0.7.1.0') { throw 'EXE branding metadata missing' }
+if ($info.CompanyName -ne 'IGN1TE' -or $info.FileVersion -ne '0.8.0.0') { throw 'EXE branding metadata missing' }
 Add-Type -AssemblyName System.Drawing
 $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
 if (!$icon) { throw 'EXE icon missing' }
@@ -61,6 +61,21 @@ if (!$p.WaitForExit(15000)) { $p.Kill(); throw 'Window close did not stop launch
 # Upgrade/reinstall and uninstall must preserve user data outside the install directory.
 Run-Checked $installer @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"$installDir`"")
 if ((Get-Content (Join-Path $dataDir 'library.json') -Raw).Trim() -ne $library) { throw 'Reinstall changed library' }
+# Exercise the automatic updater's install-and-reopen contract.
+Run-Checked $installer @('/SILENT','/SP-','/NORESTART','/RESTARTAPP=1',"/DIR=`"$installDir`"")
+$reopened = $false
+for ($i=0; $i -lt 200; $i++) {
+  try {
+    $token = (Get-Content (Join-Path $dataDir 'runtime.json') -ErrorAction Stop | ConvertFrom-Json).token
+    $status = Invoke-RestMethod 'http://127.0.0.1:48761/api/status' -Headers @{'X-GoldenEmulator-Token'=$token}
+    if ($status.desktopReady) { $reopened = $true; break }
+  } catch { }
+  Start-Sleep -Milliseconds 200
+}
+if (!$reopened) { throw 'Update installer did not reopen the desktop app' }
+Run-Checked $exe @('--stop')
+for ($i=0; $i -lt 100 -and (Test-Path (Join-Path $dataDir 'runtime.json')); $i++) { Start-Sleep -Milliseconds 200 }
+
 Run-Checked (Join-Path $installDir 'unins000.exe') @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART')
 if (Test-Path $exe) { throw 'Uninstall left installed EXE' }
 if ((Get-Content (Join-Path $dataDir 'library.json') -Raw).Trim() -ne $library) { throw 'Uninstall changed library' }

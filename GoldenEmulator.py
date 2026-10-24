@@ -22,7 +22,7 @@ SYSTEMS = {
     'GameCube': ('Dolphin', {'.iso', '.gcm', '.rvz', '.ciso'}),
     'Xbox 360': ('Xenia', {'.iso', '.xex'}),
     'PlayStation 2': ('PCSX2', {'.iso', '.bin', '.chd', '.cso', '.cue'}),
-    'PlayStation 5': ('Not connected', {'.pkg', '.bin'}),
+    'PlayStation 5': ('Custom emulator (experimental)', {'.pkg', '.bin'}),
 }
 PORT = 48761
 MAX_BYTES = 50 * 1024 * 1024
@@ -136,6 +136,7 @@ class Launcher:
         self.state_file = self.data_dir/'library.json'
         self.config_file = self.data_dir/'emulators.json'
         self.lock = threading.RLock()
+        self.update_lock = threading.Lock()
         self.picker = picker
         self.popen = popen
         self.process = None
@@ -162,10 +163,10 @@ class Launcher:
         return new
 
     def configurations(self):
-        return {s:{'name':name,'path':self.config.get(s,''),'exists':Path(self.config[s]).is_file() if self.config.get(s) else False,'supported':s!='PlayStation 5'} for s,(name,_) in SYSTEMS.items()}
+        return {s:{'name':name,'path':self.config.get(s,''),'exists':Path(self.config[s]).is_file() if self.config.get(s) else False,'supported':True} for s,(name,_) in SYSTEMS.items()}
 
     def choose_emulator(self, system):
-        if system not in SYSTEMS or system=='PlayStation 5': raise ValueError('This console has no launch integration.')
+        if system not in SYSTEMS: raise ValueError('This console has no launch integration.')
         path = self.picker('emulator', system)
         if not path: return {'cancelled':True}
         exe = Path(path).resolve(strict=True)
@@ -175,6 +176,17 @@ class Launcher:
             new = dict(self.config); new[system]=str(exe)
             atomic_json(self.config_file,new); self.config=new
         return self.configurations()
+
+    def open_emulator(self, system):
+        if system not in SYSTEMS: raise ValueError('Unknown console.')
+        with self.lock:
+            if self.status()['running']: raise ValueError('An emulator is already running. Close it first.')
+            exe = Path(self.config.get(system, ''))
+            if not exe.is_file() or exe.suffix.lower() != '.exe':
+                raise ValueError('Choose an EXE in Emulator setup first.')
+            self.process = self.popen([str(exe.resolve())], cwd=str(exe.resolve().parent), shell=False)
+            self.process_game = {'id':None, 'title':system + ' emulator', 'system':system}
+            return {'started':True, 'pid':self.process.pid, 'warning':'Emulator opened. Select your game inside the emulator.'}
 
     def locate(self, gid):
         with self.lock:
@@ -209,7 +221,7 @@ class Launcher:
             g=next((g for g in self.state['games'] if g['id']==gid),None)
             if not g:raise ValueError('Game is no longer in the library.')
             s=g['system']
-            if s=='PlayStation 5':raise ValueError('PS5 launching is not connected.')
+            if s=='PlayStation 5':return self.open_emulator(s)
             exe=Path(self.config.get(s,''))
             if not exe.is_file() or exe.suffix.lower()!='.exe':raise ValueError('Set up '+SYSTEMS[s][0]+' in Emulator setup first.')
             game=Path(g.get('nativePath',''))
@@ -279,6 +291,7 @@ def handler_for(app,token,html,origin,stop):
                     result=scan_folder(folder,s) if folder else {'cancelled':True}
                 elif self.path=='/api/locate':result=app.locate(data.get('id'))
                 elif self.path=='/api/launch':result=app.launch(data.get('id'))
+                elif self.path=='/api/open-emulator':result=app.open_emulator(data.get('system'))
                 elif self.path=='/api/desktop-ready':
                     app.desktop_ready=data.get('ok') is True;result={'ok':app.desktop_ready}
                 elif self.path=='/api/focus':
@@ -286,6 +299,17 @@ def handler_for(app,token,html,origin,stop):
                 elif self.path=='/api/fullscreen':
                     app.window.toggle_fullscreen();result={'ok':True}
                 elif self.path=='/api/updates':result=check_updates()
+                elif self.path=='/api/install-update':
+                    if not app.update_lock.acquire(blocking=False): raise ValueError('An update is already in progress.')
+                    try:
+                        if app.status()['running']: raise ValueError('Close the running emulator before updating.')
+                        result=install_update(app.data_dir)
+                    except Exception:
+                        app.update_lock.release()
+                        raise
+                    self.send(200,result)
+                    threading.Timer(1,stop).start()
+                    return
                 elif self.path=='/api/stop':
                     self.send(200,{'stopped':True});threading.Thread(target=stop,daemon=True).start();return
                 else:self.send(404,{'error':'Not found.'});return
@@ -295,7 +319,7 @@ def handler_for(app,token,html,origin,stop):
     return Handler
 
 
-APP_VERSION = '0.7.1'
+APP_VERSION = '0.8.0'
 RELEASES_API = 'https://api.github.com/repos/IGN1TE/GoldenEmulator/releases?per_page=100'
 RELEASE_PREFIX = 'https://github.com/IGN1TE/GoldenEmulator/releases/tag/'
 
@@ -319,7 +343,7 @@ def select_update(releases, current=APP_VERSION):
             expected='https://github.com/IGN1TE/GoldenEmulator/releases/download/'+url.rsplit('/',1)[1]+'/'+asset['name']
             if download!=expected:continue
             if version>latest:
-                latest=version;result={'current':current,'latest':'.'.join(map(str,version)),'available':True,'url':url,'prerelease':release.get('prerelease') is True}
+                latest=version;result={'current':current,'latest':'.'.join(map(str,version)),'available':True,'url':url,'prerelease':release.get('prerelease') is True,'download':download,'name':asset['name'],'size':asset.get('size'),'digest':asset.get('digest')}
     return result
 
 
@@ -333,6 +357,41 @@ def check_updates():
         return select_update(json.loads(raw))
     except (OSError,ValueError) as e:
         raise ValueError('Could not check for updates. Check your internet connection and try again. GitHub may be temporarily unavailable or rate-limited.') from e
+
+
+def install_update(data_dir):
+    """Fetch only an installer selected from our release API; verify before running."""
+    import hashlib
+    import re
+    import tempfile
+    import urllib.request
+    update=check_updates()
+    if not update['available']: raise ValueError('You are already up to date.')
+    digest=update.get('digest')
+    if not isinstance(digest,str) or not re.fullmatch(r'sha256:[0-9a-fA-F]{64}',digest):
+        raise ValueError('This release has no SHA-256 verification data. Please try again later.')
+    size=update.get('size')
+    if not isinstance(size,int) or not 0<size<=500*1024*1024: raise ValueError('Invalid installer size.')
+    folder=Path(data_dir)/'updates';folder.mkdir(parents=True,exist_ok=True)
+    target=Path(tempfile.mkdtemp(prefix='install-',dir=folder))/update['name']
+    try:
+        request=urllib.request.Request(update['download'],headers={'User-Agent':'GoldenEmulator/'+APP_VERSION})
+        hashed=hashlib.sha256();received=0
+        with urllib.request.urlopen(request,timeout=30) as response, target.open('wb') as output:
+            while True:
+                chunk=response.read(1024*1024)
+                if not chunk:break
+                received+=len(chunk)
+                if received>size:raise ValueError('Installer download exceeded its expected size.')
+                output.write(chunk);hashed.update(chunk)
+        if received!=size or hashed.hexdigest()!=digest[7:].lower():
+            raise ValueError('Installer verification failed. Nothing was installed; try again.')
+        subprocess.Popen([str(target),'/SILENT','/SP-','/NORESTART','/RESTARTAPP=1'],cwd=str(target.parent),shell=False)
+    except Exception:
+        target.unlink(missing_ok=True)
+        target.parent.rmdir()
+        raise
+    return {'installing':True,'version':update['latest']}
 
 
 def contact_instance(data_dir, stop=False, focus=False):

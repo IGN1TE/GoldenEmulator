@@ -87,7 +87,7 @@ class NativeTests(unittest.TestCase):
         self.assertEqual(before, self.app.state_file.read_bytes())
         self.assertEqual(reopened.config, self.app.config)
         self.assertEqual(len(reopened.configurations()), 10)
-        self.assertFalse(reopened.configurations()['PlayStation 5']['supported'])
+        self.assertTrue(reopened.configurations()['PlayStation 5']['supported'])
     def test_saved_library_reopens_without_data_loss(self):
         other=ge.Launcher(self.root/'data')
         self.assertEqual(other.state['games'][0]['notes'],'Keep notes')
@@ -108,6 +108,44 @@ class NativeTests(unittest.TestCase):
         self.app.choose_emulator('Xbox 360')
         self.assertTrue(ge.Launcher(self.root/'data').config['Xbox 360'])
         self.assertEqual(self.app.locate('g1')['games'][0]['nativePath'],str(self.game))
+    def test_ps5_choose_reopen_and_open_any_exe_without_game_arguments(self):
+        self.app.picker=lambda kind,system:str(self.exe)
+        self.app.choose_emulator('PlayStation 5')
+        reopened=ge.Launcher(self.app.data_dir,popen=self.spawn)
+        self.assertEqual(reopened.config['PlayStation 5'],str(self.exe))
+        self.assertTrue(reopened.configurations()['PlayStation 5']['exists'])
+        before=reopened.state_file.read_bytes()
+        reopened.open_emulator('PlayStation 5')
+        self.spawn.assert_called_once_with([str(self.exe)],cwd=str(self.root),shell=False)
+        self.assertEqual(before,reopened.state_file.read_bytes())
+        with self.assertRaisesRegex(ValueError,'already running'):reopened.open_emulator('PlayStation 5')
+
+    def test_ps5_picker_cancel_and_non_exe_preserve_configuration(self):
+        self.app.picker=lambda *args:''
+        self.assertTrue(self.app.choose_emulator('PlayStation 5')['cancelled'])
+        self.app.picker=lambda *args:str(self.game)
+        with self.assertRaisesRegex(ValueError,'EXE'):self.app.choose_emulator('PlayStation 5')
+        self.assertNotIn('PlayStation 5',self.app.config)
+
+    def test_update_download_verification_and_installer_arguments(self):
+        import hashlib, io
+        from unittest.mock import patch
+        payload=b'MZ fake installer used only with mocked Popen'
+        update={'available':True,'latest':'9.0.0','download':'https://github.com/IGN1TE/GoldenEmulator/releases/download/v9.0.0/GoldenEmulator-Setup-9.0.0.exe','name':'GoldenEmulator-Setup-9.0.0.exe','size':len(payload),'digest':'sha256:'+hashlib.sha256(payload).hexdigest()}
+        with patch.object(ge,'check_updates',return_value=update), patch('urllib.request.urlopen',return_value=io.BytesIO(payload)), patch.object(ge.subprocess,'Popen') as spawn:
+            self.assertTrue(ge.install_update(self.app.data_dir)['installing'])
+            args=spawn.call_args.args[0]
+            self.assertEqual(Path(args[0]).read_bytes(),payload)
+            self.assertEqual(args[1:],['/SILENT','/SP-','/NORESTART','/RESTARTAPP=1'])
+            self.assertFalse(spawn.call_args.kwargs['shell'])
+        for corrupt in (b'bad', payload+b'extra', b'X'*len(payload)):
+            with patch.object(ge,'check_updates',return_value=update), patch('urllib.request.urlopen',return_value=io.BytesIO(corrupt)), patch.object(ge.subprocess,'Popen') as spawn:
+                with self.assertRaises(ValueError):ge.install_update(self.app.data_dir)
+                spawn.assert_not_called()
+        with patch.object(ge,'check_updates',return_value=dict(update,digest=None)), patch.object(ge.subprocess,'Popen') as spawn:
+            with self.assertRaisesRegex(ValueError,'verification'):ge.install_update(self.app.data_dir)
+            spawn.assert_not_called()
+
     def test_scan_full_paths(self):
         result=ge.scan_folder(self.root,'Xbox 360')
         match=next(f for f in result['files'] if f['name']==self.game.name)
